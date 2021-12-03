@@ -22,8 +22,8 @@ def row2int(row):
     return value
 
 
-f = open("input.txt", "r")
-data = [list(map(int, line.strip())) for line in f]
+with open("input.txt", "r") as f:
+  data = [list(map(int, line.strip())) for line in f]
 
 o2generator = row2int(shakedown(data, use_most_common=True))
 co2scrubber = row2int(shakedown(data, use_most_common=False))
