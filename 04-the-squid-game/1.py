@@ -1,7 +1,5 @@
 #!/bin/env python3
 
-import json
-
 def read_data(path):
   with open(path) as f:
     numbers = list(map(int, next(f).split(",")))
@@ -39,7 +37,6 @@ for number in numbers:
   winners = find_winners(boards)
   if any(winners):
     break
-
 
 for winner in winners:
   remaining = [n for n in winner if n is not None]

@@ -1,7 +1,5 @@
 #!/bin/env python3
 
-import json
-
 def read_data(path):
   with open(path) as f:
     numbers = list(map(int, next(f).split(",")))
@@ -46,3 +44,4 @@ for number in numbers:
 
 remaining = [n for n in boards[0] if n is not None]
 print(sum(remaining) * number)
+
