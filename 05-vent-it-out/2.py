@@ -9,7 +9,7 @@ with open("input.txt") as f:
 
 # Initialize grid that can hold all data points.
 max_x = max(max(x1,x2) for x1,_,x2,_ in data)
-max_y = max(max(y1,y2) for y1,_,y2,_ in data)
+max_y = max(max(y1,y2) for _,y1,_,y2 in data)
 grid = [[0]*(max_x+1) for _ in range(max_y+1)]
 
 # Draw in all vent lines.
