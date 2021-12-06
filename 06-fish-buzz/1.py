@@ -23,8 +23,8 @@ def handle_births(school):
 
 data = read_data()
 school = group_fish_by_age(data)
-for day in range(1, 257):
+for day in range(80):
   school = age_school_one_day(school)
   school = handle_births(school)
-  if day in[80, 256]:
-    print(f"day {day} = {sum(school.values())}")
+
+print(sum(school.values()))
