@@ -8,7 +8,7 @@ def read_crabs_from_file(path):
 
 def get_fuel_for_position(crabs, position):
   distances = (abs(crab - position) for crab in crabs)
-  fuel_costs = (d*(d+1)/2 for d in distances)
+  fuel_costs = (d*(d+1)//2 for d in distances)
   fuel_total = sum(fuel_costs)
   return fuel_total
 
