@@ -1,6 +1,6 @@
 #!/bin/env python3
 
-def read_data(path):
+def read_bingo_data_from_file(path):
   with open(path) as f:
     numbers = list(map(int, next(f).split(",")))
     boards = []  
@@ -11,6 +11,7 @@ def read_data(path):
         boards[-1].extend(list(map(int, line.split())))
   return numbers, boards
 
+
 def flag_number_on_boards(boards, number):
   for board in boards:
     try:
@@ -18,6 +19,7 @@ def flag_number_on_boards(boards, number):
       board[i] = None
     except ValueError:
       pass
+
 
 def is_winning(board):
   for i in range(5):
@@ -27,11 +29,12 @@ def is_winning(board):
       return True
   return False
 
+
 def find_winners(boards):
   return list(filter(is_winning, boards))
 
 
-numbers, boards = read_data("input.txt")
+numbers, boards = read_bingo_data_from_file("input.txt")
 for number in numbers:
   flag_number_on_boards(boards, number)
   winners = find_winners(boards)
