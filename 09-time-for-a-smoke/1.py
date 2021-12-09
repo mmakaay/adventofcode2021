@@ -5,45 +5,60 @@ def read_grid_from_file(path):
     return [list(map(int, line.strip())) for line in f]
 
 
-def get_surrounding(x, y):
-  yield (x-1, y-1)
-  yield (x, y-1)
-  yield (x+1, y-1)
-  yield (x-1, y)
-  yield (x+1, y)
-  yield (x-1, y+1)
-  yield (x, y+1)
-  yield (x+1, y+1)
+def get_surrounding(coordinate):
+  x, y = coordinate
+  yield (x,   y-1)
+  yield (x-1, y  )
+  yield (x+1, y  )
+  yield (x,   y+1)
 
 
-def within_bounds(grid, options):
+def grid_width(grid):
+  return len(grid[0])
+
+
+def grid_height(grid):
+  return len(grid)
+
+
+def value_at(grid, coordinate):
+  x, y = coordinate
+  return grid[y][x]
+
+
+def coordinates(grid):
+  for x in range(grid_width(grid)):  
+    for y in range(grid_height(grid)):
+      yield (x, y)
+
+
+def within_bounds(grid, coordinates):
   return (
-    (x, y, grid[y][x]) for x,y in options if 
-    x >= 0 and y >= 0 and x < len(grid[0]) and y < len(grid)
+    (x, y) for x, y in coordinates if 
+    x >= 0 and y >= 0 and x < grid_width(grid) and y < grid_height(grid)
   )
 
 
-def is_lowpoint(grid, x, y):
+def is_lowpoint(grid, coordinate):
   return all(
-    grid[y][x] < value
-    for _,_,value in within_bounds(grid, get_surrounding(x, y))
+    value_at(grid, around) > value_at(grid, coordinate)
+    for around in within_bounds(grid, get_surrounding(coordinate))
   )
 
 
 def get_lowpoints(grid):
-  for x in range(len(grid[0])):  
-    for y in range(len(grid)):
-      if is_lowpoint(grid, x,y):
-        yield (x, y, grid[y][x])
+  for coordinate in coordinates(grid):
+    if is_lowpoint(grid, coordinate):
+      yield coordinate
 
 
-def get_risklevel(lowpoint):
-  _, _, value = lowpoint
-  return value + 1
+def get_risklevel(grid, lowpoint):
+  return value_at(grid, lowpoint) + 1
 
 
-grid = read_grid_from_file("example2.txt")
-lowpoints = list(get_lowpoints(grid))
-risk_level = sum(map(get_risklevel, lowpoints))
+grid = read_grid_from_file("input.txt")
+lowpoints = get_lowpoints(grid)
+risk_levels = (get_risklevel(grid, lowpoint) for lowpoint in lowpoints)
 
-print(risk_level)
+print(sum(risk_levels))
+
