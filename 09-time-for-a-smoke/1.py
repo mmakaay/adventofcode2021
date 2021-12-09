@@ -27,9 +27,11 @@ def get_surrounding(coordinate):
 
 
 def coordinates(grid):
-  for x in range(grid_width(grid)):  
-    for y in range(grid_height(grid)):
-      yield (x, y)
+  return (
+    (x, y)
+    for y in range(grid_height(grid))
+    for x in range(grid_width(grid))
+  )
 
 
 def within_bounds(grid, coordinates):
@@ -47,9 +49,10 @@ def is_lowpoint(grid, coordinate):
 
 
 def get_lowpoints(grid):
-  for coordinate in coordinates(grid):
-    if is_lowpoint(grid, coordinate):
-      yield coordinate
+  return (
+    coordinate for coordinate in coordinates(grid)
+    if is_lowpoint(grid, coordinate)
+  )
 
 
 def get_risklevel(grid, lowpoint):
