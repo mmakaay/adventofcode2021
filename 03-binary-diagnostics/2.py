@@ -3,7 +3,7 @@
 from functools import reduce
 
 
-def read_diagnostics_from_file(path):
+def load_diagnostics_from_file(path):
   with open("input.txt", "r") as f:
     data = [list(map(int, line.strip())) for line in f]
   return data
@@ -29,7 +29,7 @@ def row2int(row):
   return value
 
 
-data = read_diagnostics_from_file("input.txt")
+data = load_diagnostics_from_file("input.txt")
 o2generator = row2int(shakedown(data, use_most_common=True))
 co2scrubber = row2int(shakedown(data, use_most_common=False))
 

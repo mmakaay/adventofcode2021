@@ -20,7 +20,7 @@ LENGHTS = [len(x) for x in DIGITS]
 UNIQUE = [x for x in LENGHTS if LENGHTS.count(x) == 1]
 
 
-def read_data(path):
+def load_data(path):
   with open(path, "r") as f:
     return [[x.split() for x in line.split("|")] for line in f]
        
@@ -87,7 +87,7 @@ def render_display(rewire, display):
 
 
 sum = 0
-for patterns, display in read_data("input.txt"):
+for patterns, display in load_data("input.txt"):
   rewire = find_required_rewiring(patterns)
   rendered = render_display(rewire, display)
   sum += int(rendered)

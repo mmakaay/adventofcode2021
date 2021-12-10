@@ -3,7 +3,7 @@
 import math
 
 
-def read_grid_from_file(path):
+def load_grid_from_file(path):
   with open(path, "r") as f:
     return [list(map(int, line.strip())) for line in f]
 
@@ -81,7 +81,7 @@ def get_basins(lowpoints):
   return (get_basin(grid, lowpoint) for lowpoint in lowpoints) 
 
 
-grid = read_grid_from_file("input.txt")
+grid = load_grid_from_file("input.txt")
 basins = get_basins(grid)
 basins_by_size = sorted(basins, key=len, reverse=True)
 biggest_three = basins_by_size[0:3]

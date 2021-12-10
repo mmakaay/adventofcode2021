@@ -3,7 +3,7 @@
 from collections import Counter
 
 
-def read_fishes_from_file(path):
+def load_fishes_from_file(path):
   with open(path) as f:
     fishes = list(map(int, next(f).split(",")))
   return fishes
@@ -27,7 +27,7 @@ def handle_births(school):
   return school
 
 
-fishes = read_fishes_from_file("input.txt")
+fishes = load_fishes_from_file("input.txt")
 school = group_fish_by_age(fishes)
 for day in range(256):
   school = age_school_one_day(school)

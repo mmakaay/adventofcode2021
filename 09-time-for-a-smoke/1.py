@@ -1,6 +1,6 @@
 #!/bin/env python3
 
-def read_grid_from_file(path):
+def load_grid_from_file(path):
   with open(path, "r") as f:
     return [list(map(int, line.strip())) for line in f]
 
@@ -59,7 +59,7 @@ def get_risklevel(grid, lowpoint):
   return value_at(grid, lowpoint) + 1
 
 
-grid = read_grid_from_file("input.txt")
+grid = load_grid_from_file("input.txt")
 lowpoints = get_lowpoints(grid)
 risk_levels = (get_risklevel(grid, lowpoint) for lowpoint in lowpoints)
 

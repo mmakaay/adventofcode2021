@@ -1,6 +1,6 @@
 #!/bin/env python3
 
-def read_crabs_from_file(path):
+def load_crabs_from_file(path):
   with open(path, "r") as f:
     crabs = list(map(int, next(f).split(",")))
   return crabs
@@ -23,7 +23,7 @@ def sort_by_fuel_use(options):
   return sorted(options, key=lambda o: o[1])
 
 
-crabs = read_crabs_from_file("input.txt")
+crabs = load_crabs_from_file("input.txt")
 options = build_options(crabs)
 options = sort_by_fuel_use(options)
 best_position, fuel = options[0]
