@@ -16,20 +16,20 @@ def grid_height(grid):
   return len(grid)
 
 
-def value_at(grid, coordinate):
-  x, y = coordinate
+def value_at(grid, pos):
+  x, y = pos
   return grid[y][x]
 
 
-def get_surrounding(coordinate):
-  x, y = coordinate
+def get_surrounding(pos):
+  x, y = pos
   yield (x,   y-1)
   yield (x-1, y  )
   yield (x+1, y  )
   yield (x,   y+1)
 
 
-def coordinates(grid):
+def positions(grid):
   return (
     (x, y)
     for y in range(grid_height(grid))
@@ -37,37 +37,37 @@ def coordinates(grid):
   )
 
 
-def within_bounds(grid, coordinates):
+def within_bounds(grid, positions):
   return (
-    (x, y) for x, y in coordinates if 
+    (x, y) for x, y in positions if 
     x >= 0 and y >= 0 and x < grid_width(grid) and y < grid_height(grid)
   )
 
 
-def is_lowpoint(grid, coordinate):
+def is_lowpoint(grid, pos):
   return all(
-    value_at(grid, around) > value_at(grid, coordinate)
-    for around in within_bounds(grid, get_surrounding(coordinate))
+    value_at(grid, around) > value_at(grid, pos)
+    for around in within_bounds(grid, get_surrounding(pos))
   )
 
 
 def get_lowpoints(grid):
   return (
-    coordinate for coordinate in coordinates(grid)
-    if is_lowpoint(grid, coordinate)
+    pos for pos in positions(grid)
+    if is_lowpoint(grid, pos)
   )
 
 
-def is_upstream(grid, coordinate, around):
-  value = value_at(grid, coordinate)
+def is_upstream(grid, pos, around):
+  value = value_at(grid, pos)
   value_around = value_at(grid, around)
   return value_around != 9 and value_around > value
 
 
-def follow_upstream(grid, coordinate, basin):
-  basin.add(coordinate)
-  for around in within_bounds(grid, get_surrounding(coordinate)):
-    if is_upstream(grid, coordinate, around):
+def follow_upstream(grid, pos, basin):
+  basin.add(pos)
+  for around in within_bounds(grid, get_surrounding(pos)):
+    if is_upstream(grid, pos, around):
       follow_upstream(grid, around, basin)
   return basin
 
