@@ -7,9 +7,9 @@ def load_routes(path):
   routes = defaultdict(list)
   with open(path, "r") as f:
     for line in f:
-      [from_, to_] = line.strip().split("-")
-      routes[from_].append(to_)
-      routes[to_].append(from_)
+      [a, b] = line.strip().split("-")
+      routes[a].append(b)
+      routes[b].append(a)
   return routes
 
 
