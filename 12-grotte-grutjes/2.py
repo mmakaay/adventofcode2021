@@ -20,10 +20,7 @@ def is_small_cave(cave):
 
 
 def list_small_caves(routes):
-  return [
-    c for c in routes.keys()
-    if is_small_cave(c)
-  ]
+  return [c for c in routes.keys() if is_small_cave(c)]
 
 
 def create_travel_plans(routes):
