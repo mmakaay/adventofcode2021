@@ -6,7 +6,6 @@ import re
 def load_instructions(path):
   dots = []
   instructions = []
-  read_instructions = False
   with open(path, "r") as f:
     for line in f:
       if groups := re.match(r'(\d+),(\d+)', line):
