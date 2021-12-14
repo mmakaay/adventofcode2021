@@ -11,7 +11,7 @@ with open(sys.argv[1], "r") as f:
         dots.add((x,y)) 
     
 folds = []
-for _ in range(1):
+for _ in range(5):
   axis = choice(["y", "x"])
   w = max(x for x,_ in dots)+1
   h = max(y for _,y in dots)+1
@@ -20,12 +20,12 @@ for _ in range(1):
   grab = sample(dots, len(dots)//2)
   for x,y in grab:
     if axis == "x":
-        if x >= (offset-size): 
+        if x > (offset-size): 
           dots.add((2*offset-x,y))
           if choice([True, False]):
             dots.remove((x,y))
     else:
-        if y >= (offset-size): 
+        if y > (offset-size): 
           dots.add((x,2*offset-y))
           if choice([True, False]):
             dots.remove((x,y))
