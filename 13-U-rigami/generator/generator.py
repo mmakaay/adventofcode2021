@@ -22,12 +22,12 @@ for _ in range(10):
     if axis == "x":
         if x > (offset-size): 
           dots.add((2*offset-x,y))
-          if choice([True, True]):
+          if choice([True, False]):
             dots.remove((x,y))
     else:
         if y > (offset-size): 
           dots.add((x,2*offset-y))
-          if choice([True, True]):
+          if choice([True, False]):
             dots.remove((x,y))
   folds.append((axis,offset))
 
