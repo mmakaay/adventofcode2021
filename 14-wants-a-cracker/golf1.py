@@ -6,4 +6,5 @@ P,E=T([p[i:i+2]for i in range(len(p)-1)]),T(p)
 for i in range(10):
  for h,j in dict(P).items():
   I=r[h];P.subtract({h:j});P.update({h[0]+I:j,I+h[1]:j});E.update({I:j})
-C=E.most_common();print(C[0][1]-C[-1][1])
+C=E.values();print(max(C)-min(C))
+
