@@ -2,6 +2,7 @@
 
 from collections import Counter
 
+
 def load_recipe(path):
   with open(path) as f:
     template = next(f).strip()
@@ -13,6 +14,7 @@ def load_recipe(path):
 
 def count_pairs_in_polymer(polymer):
   return Counter([polymer[i:i+2] for i in range(len(polymer)-1)])
+
 
 def count_elements_in_polymer(polymer):
   return Counter(polymer)
@@ -29,8 +31,9 @@ def grow_polymer(pairs, elements, rules):
 polymer, rules = load_recipe("input.txt")
 pairs = count_pairs_in_polymer(polymer)
 elements = count_elements_in_polymer(polymer)
-for i in range(10):
+for i in range(40):
   grow_polymer(pairs, elements, rules)
+
 
 ordered = elements.most_common()
 print(ordered[0][1]-ordered[-1][1])
