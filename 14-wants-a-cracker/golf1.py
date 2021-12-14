@@ -7,4 +7,3 @@ for i in range(10):
  for h,j in dict(P).items():
   I=r[h];P.subtract({h:j});P.update({h[0]+I:j,I+h[1]:j});E.update({I:j})
 C=E.values();print(max(C)-min(C))
-
