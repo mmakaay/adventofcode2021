@@ -16,50 +16,36 @@ def get_dimensions(cave):
   return w,h
 
 
-def create_adjacency_map(cave):
+def surrounding(node, w, h):
+  x,y = node
+  for offset_x, offset_y in [(-1,0), (0,-1), (1,0), (0,1)]:
+    x2 = x + offset_x
+    y2 = y + offset_y
+    if x2>=0 and y2 >= 0 and x2 < w and y2 < h:
+      yield (x2,y2)
+
+
+def find_safest_route(cave):
   w,h = get_dimensions(cave)
   start_node = (0,0)
   end_node = (w-1,h-1)
-  adjacencies = {}
-  for y in range(h):
-    for x in range(w):
-      neighbors = []
-      if x < w-1: neighbors.append(((x+1,y), cave[y][x+1]))
-      if y < h-1: neighbors.append(((x,y+1), cave[y+1][x]))
-      if x > 0: neighbors.append(((x-1,y), cave[y][x-1]))
-      if y > 0: neighbors.append(((x,y-1), cave[y-1][x]))
-      adjacencies[(x,y)] = neighbors
-  return adjacencies, start_node, end_node
-
-
-def init_nodes_to_visit_queue(start_node):
-  return [(0, start_node, [start_node])]
-
-
-def init_minimum_risk_map(adjacencies):
-  return dict(
-    (node, 0 if node == start_node else inf)
-    for node in adjacencies.keys()
-  ) 
-
-
-def find_safest_route(adjacencies, start_node, end_node):
-  nodes_to_visit = init_nodes_to_visit_queue(start_node)
-  minimum_risk = init_minimum_risk_map(adjacencies)
+  nodes_to_visit = [(0, start_node, [start_node])]
+  minimum_risk = {}
   visited_nodes = set()
 
   while nodes_to_visit:
-    cost, node, path = heappop(nodes_to_visit)
+    risk, node, path = heappop(nodes_to_visit)
 
     if node == end_node:
-      return (cost, path)
+      return (risk, path)
 
-    for neighbor,to_cost in adjacencies[node]:
+    for neighbor in surrounding(node, w, h):
       if neighbor in visited_nodes:
         continue
       
-      known_risk_to_neighbour = minimum_risk[neighbor]
-      risk_via_this_node = cost + to_cost
+      to_risk = cave[neighbor[1]][neighbor[0]]
+      known_risk_to_neighbour = minimum_risk.get(neighbor, inf)
+      risk_via_this_node = risk + to_risk
       if risk_via_this_node < known_risk_to_neighbour:
         minimum_risk[neighbor] = risk_via_this_node
         queue_node = (risk_via_this_node, neighbor, [neighbor]+path)
@@ -69,7 +55,6 @@ def find_safest_route(adjacencies, start_node, end_node):
 
 
 cave = load_cave(sys.argv[1]) 
-adjacencies, start_node, end_node = create_adjacency_map(cave)
-risk_level, _ = find_safest_route(adjacencies, start_node, end_node)
+risk_level, _ = find_safest_route(cave)
 
 print(risk_level)
