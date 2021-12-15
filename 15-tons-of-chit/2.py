@@ -18,11 +18,11 @@ def get_dimensions(cave):
 
 def extrapolate_cave(cave, times):
   w,h = get_dimensions(cave)
-  unfolded = [[0]*(w*5) for _ in range(h*5)]
+  extrapolated = [[0]*(w*5) for _ in range(h*5)]
   for y in range(h*5):
     for x in range(w*5):
-      unfolded[y][x] = 1+((cave[y%h][x%w] + (x//w) + (y//h))-1) % 9 
-  return unfolded
+      extrapolated[y][x] = 1 + (cave[y%h][x%w] + x//w + y//h - 1)%9 
+  return extrapolated
 
 
 def surrounding(node, w, h):
