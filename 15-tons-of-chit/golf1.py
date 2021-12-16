@@ -1,6 +1,6 @@
 #!/bin/env python3
 from heapq import* 
-C=[list(map(int,line.strip()))for line in open("input.txt")]
+C=[list(map(int,l.strip()))for l in open("input.txt")]
 w,h,V,R,D=len(C[0])-1,len(C)-1,[(0,0,0)],{},set()
 while V:
  r,x,y=heappop(V);D.add((x,y))

@@ -1,5 +1,6 @@
 #!/bin/env python3
-from heapq import*;C=[list(map(int,line.strip()))for line in open("input.txt")]
+from heapq import*
+C=[list(map(int,l.strip()))for l in open("input.txt")]
 o,p,V,R,D=len(C[0]),len(C),[(0,0,0)],{},set();w,h=o*5,p*5
 U=[[1+(C[y%p][x%o]+x//o+y//p-1)%9 for x in range(w)]for y in range(h)]
 while V:
