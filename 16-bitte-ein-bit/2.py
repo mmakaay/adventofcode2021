@@ -26,13 +26,6 @@ def parse_bitstream(bits):
   return ast
 
 
-def parse_int_value(bits, bitlen):
-  value = 0
-  for _ in range(bitlen):
-    value = value<<1 | next(bits) 
-  return value
-
-
 TYPE_SUM     = 0
 TYPE_PRODUCT = 1
 TYPE_MIN     = 2
@@ -53,6 +46,13 @@ def parse_packet(bits):
   else:
     op_bitlen, op_value = parse_operator(bits)
     return bitlen+op_bitlen, (version, packet_type, op_value)
+
+
+def parse_int_value(bits, bitlen):
+  value = 0
+  for _ in range(bitlen):
+    value = value<<1 | next(bits) 
+  return value
 
 
 def parse_literal(bits):
