@@ -19,7 +19,7 @@ def Y():
  return O,A
 def V(T):
  _,t,a=T;f=[add,mul,min,max,0,gt,lt,eq][t]
- if f:a=int(r(f,[V(arg)for arg in a]))
+ if f:a=int(r(f,[V(x)for x in a]))
  return a
 N=[map(int,f"{int(h,16):04b}")for h in next(open("input.txt")).strip().upper()]
 B=lambda:next(b for n in N for b in n)
