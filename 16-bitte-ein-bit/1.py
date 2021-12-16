@@ -33,14 +33,7 @@ def parse_int_value(bits, bitlen):
   return value
 
 
-TYPE_SUM     = 0
-TYPE_PRODUCT = 1
-TYPE_MIN     = 2
-TYPE_MAX     = 3
 TYPE_LITERAL = 4
-TYPE_GT      = 5
-TYPE_LT      = 6
-TYPE_EQ      = 7
 
 
 def parse_packet(bits):
@@ -99,19 +92,6 @@ def parse_operator_args_by_nr_of_args(bits):
     expected_args -= 1
   return bitlen, args
     
-
-def operator_func_for_packet_type(packet_type):
-  OPERATOR_FUNCS = {
-    TYPE_SUM     : operator.add,
-    TYPE_PRODUCT : operator.mul,
-    TYPE_MIN     : min,
-    TYPE_MAX     : max,
-    TYPE_GT      : operator.gt,
-    TYPE_LT      : operator.lt,
-    TYPE_EQ      : operator.eq
-  }
-  return OPERATOR_FUNCS[packet_type]
-
 
 def sum_versions(ast, total=0):
   version, operator_type, args = ast
