@@ -7,15 +7,11 @@ def Z():
  if T==4:
   while M:M=B();P=P<<4|I(4);O+=5
   return L+O,(V,T,P)
- O,P=[X,Y][B()]()
+ O,P=X(B())
  return L+M+O,(V,T,P)
-def X():
- O=15;W=I(O);A=[]
- while W:P,V=Z();O+=P;A.append(V);W-=P
- return O,A
-def Y():
- O=11;W=I(O);A=[]
- while W:P,V=Z();O+=P;A.append(V);W-=1
+def X(D):
+ O=15-4*D;W,A=I(O),[]
+ while W:P,V=Z();O+=P;A.append(V);W-=1 if D else P
  return O,A
 def V(T):
  _,t,a=T;f=[add,mul,min,max,0,gt,lt,eq][t]
