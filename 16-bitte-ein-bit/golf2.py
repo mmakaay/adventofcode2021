@@ -6,8 +6,7 @@ def Z():
  I(3);T,L,M,O,P=I(3),6,1,0,0
  if T==4:
   while M:M=B();P=P<<4|I(4);O+=5
-  return(T,P),L+O
- O,P=X(B())
+ else:O,P=X(B())
  return(T,P),L+M+O
 def X(D):
  O=15-4*D;W,A=I(O),[]
@@ -17,6 +16,6 @@ def V(T):
  t,a=T;f=[add,mul,min,max,0,gt,lt,eq][t]
  if f:a=int(r(f,map(V,a)))
  return a
-N=[map(int,f"{int(h,16):04b}")for h in next(open("input.txt")).strip().upper()]
-B=lambda:next(b for n in N for b in n)
-print(V(Z()[0]))
+i=(b=="1"for n in(f"{int(h,16):04b}"for h in
+next(open("input.txt")).strip())for b in n)
+B=lambda:next(i);print(V(Z()[0]))
