@@ -4,14 +4,12 @@ from functools import *
 def I(l,v=0):return I(l-1,v<<1|B())if l else v
 def Z():
  T,L,M,O,P=I(6)&7,6,1,0,0
- if T==4:
+ if T-4:
+  D=B();O=15-4*D;W,P=I(O),[]
+  while W:R,Q=Z();O+=Q;P+=[R];W-=[Q,1][D]
+ else:
   while M:M=B();P=P<<4|I(4);O+=5
- else:O,P=X(B())
  return(T,P),L+M+O
-def X(D):
- O=15-4*D;W,A=I(O),[]
- while W:V,P=Z();O+=P;A+=[V];W-=[P,1][D]
- return O,A
 def V(T):
  t,a=T;f=[add,mul,min,max,0,gt,lt,eq][t]
  if f:a=int(reduce(f,map(V,a)))
