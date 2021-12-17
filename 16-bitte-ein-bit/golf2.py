@@ -9,7 +9,7 @@ def Z():
   while W:R,Q=Z();O+=Q;P+=[R];W-=[Q,1][D]
  else:
   while M:M=B();P=[P[0]<<4|I(4)];O+=5
- return(reduce([add,mul,min,max,lambda x:x,gt,lt,eq][T],P)),6+M+O
+ return(reduce([add,mul,min,max,max,gt,lt,eq][T],P)),6+M+O
 i=(b=="1"for n in(f"{int(h,16):04b}"for h in
 next(open("input.txt")).strip())for b in n)
 B=lambda:next(i)
