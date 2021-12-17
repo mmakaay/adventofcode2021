@@ -33,10 +33,9 @@ def find_y_speed_options(target):
   for initial_speed in range(min_speed, max_speed+1):
     speed = initial_speed
     y,step = 0,0
-    while y >= y_min: # Step position is at or above the deepest target point.
-      if y <= y_max: # Step position is at or below the highest target point.
+    while y >= y_min:
+      if y <= y_max:
         yield (initial_speed, step)
-      # Go to the next step in the trajectory.
       step += 1
       y += speed 
       speed = speed-1
@@ -64,20 +63,15 @@ def find_x_speed_options(target, max_steps):
     while step<=max_steps and x <= x_max:
       if x >= x_min:
         yield (initial_speed, step)
-      x += speed 
       step += 1
+      x += speed 
       speed = speed-1 if speed > 0 else 0
 
 
 def get_possible_initial_velocities(x_options, y_options):
   x_options = group_by_step(x_options)
   y_options = group_by_step(y_options)
-  for step, x_values in x_options.items():
-    if step in y_options:
-      y_values = y_options[step]
-      for x in x_values:
-        for y in y_values:
-          yield (x,y)
+  yield from intersect_options(x_options, y_options)
 
 
 def group_by_step(options):
@@ -92,14 +86,19 @@ def group_by_step(options):
   ) 
 
 
-import time
-a = time.perf_counter()
+def intersect_options(x_options, y_options):
+  for step, x_values in x_options.items():
+    if step in y_options:
+      y_values = y_options[step]
+      for x in x_values:
+        for y in y_values:
+          yield (x,y)
+
+
 target = load_target_area("input.txt")
 y_options = list(find_y_speed_options(target))
 max_steps = max(step for _,step in y_options)
 x_options = find_x_speed_options(target, max_steps)
 velocities = set(get_possible_initial_velocities(x_options, y_options))
-b = time.perf_counter()
-print((b-a)*1000,"ms")
 
 print(len(velocities))
