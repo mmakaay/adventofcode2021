@@ -1,6 +1,5 @@
 #!/bin/env python3
 from operator import *
-from functools import *
 def I(l,v=0):return I(l-1,v<<1|B())if l else v
 def Z():
  T,M,O,P=I(6)&7,1,0,[0]
@@ -9,7 +8,8 @@ def Z():
   while W:R,Q=Z();O+=Q;P+=[R];W-=[Q,1][D]
  else:
   while M:M=B();P=[P[0]<<4|I(4)];O+=5
- return(reduce([add,mul,min,max,max,gt,lt,eq][T],P)),6+M+O
+ s=P.pop(0);[s:=[add,mul,min,max,max,gt,lt,eq][T](s,p)for p in P]
+ return s,6+M+O
 i=(b=="1"for n in(f"{int(h,16):04b}"for h in
 next(open("input.txt")).strip())for b in n)
 B=lambda:next(i)
