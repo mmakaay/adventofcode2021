@@ -1,4 +1,6 @@
 #!/bin/env python3
+#
+# For an explanation, see the file "strategy.txt".
 
 import re
 
@@ -6,36 +8,22 @@ import re
 def load_target_area(path):
   with open(path, "r") as f:
     match = re.match(r".*x=(\d+)\.\.(\d+).*y=([-\d]+)\.\.([-\d]+)", next(f))
-    x1,x2,y1,y2 = tuple(map(int, match.groups()))
-    return x1,x2,y1,y2
+    return dict(zip(
+      ("x_min", "x_max", "y_min", "y_max"),
+      map(int, match.groups())
+    ))
 
 
-def find_y_speed_options(y_min, y_max):
-  y_speed_range = list(range(0, (abs(y_min))))
-  for start_speed in y_speed_range:
-    speed = start_speed
-    y = 0
-    while y >= y_min:
-      if y <= y_max:
-        yield (start_speed, y)
-      speed += 1
-      y -= speed 
-
-
-def get_max_start_speed(options):
-  return max(start_speed for start_speed,_ in options)
+def get_max_start_speed(target):
+  return -1 * target['y_min'] - 1
 
 
 def get_max_height_for_start_speed(speed):
-  max_height = 0
-  for s in range(speed+1):
-    max_height += s 
-  return max_height
+  return (speed*speed + speed) // 2
 
 
-x_min,x_max,y_min,y_max = load_target_area("input.txt")
-speed_options = find_y_speed_options(y_min, y_max)
-max_y_speed = get_max_start_speed(speed_options)
+target = load_target_area("input.txt")
+max_y_speed = get_max_start_speed(target)
 max_height = get_max_height_for_start_speed(max_y_speed)
 
 print(f"speed {max_y_speed}, height = {max_height}")
