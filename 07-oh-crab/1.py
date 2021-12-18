@@ -1,26 +1,27 @@
 #!/bin/env python3
 
+
 def load_crabs_from_file(path):
-  with open(path, "r") as f:
-    crabs = list(map(int, next(f).split(",")))
-  return crabs
+    with open(path, "r") as f:
+        crabs = list(map(int, next(f).split(",")))
+    return crabs
 
 
 def get_fuel_for_position(crabs, position):
-  distances = (abs(crab - position) for crab in crabs)
-  fuel_total = sum(distances)
-  return fuel_total
+    distances = (abs(crab - position) for crab in crabs)
+    fuel_total = sum(distances)
+    return fuel_total
 
 
 def build_options(crabs):
-  positions = list(range(min(crabs), max(crabs)+1))
-  for position in positions:
-    fuel_total = get_fuel_for_position(crabs, position)
-    yield position, fuel_total
+    positions = list(range(min(crabs), max(crabs) + 1))
+    for position in positions:
+        fuel_total = get_fuel_for_position(crabs, position)
+        yield position, fuel_total
 
 
 def sort_by_fuel_use(options):
-  return sorted(options, key=lambda o: o[1])
+    return sorted(options, key=lambda o: o[1])
 
 
 crabs = load_crabs_from_file("input.txt")
