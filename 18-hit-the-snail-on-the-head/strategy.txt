@@ -1,0 +1,75 @@
+Addition:
+---------
+
+N1 + N2 = [N1, N2]
+
+  o       o         o
+  |   +   |   =    / \
+  N1      N2      N1  N2
+
+
+     o         o         o
+    / \    +   |   =    / \
+   N1  N2      N3      o   N3
+                      / \
+                     N1  N2
+
+N1 = [1,1]
+N2 = [2,2]
+N3 = [ [1,1], [2,2] ]
+
+N1 = [3,[2,[1,[7,3]]]] 
+N2 = [6,[5,[4,[3,2]]]]
+N3 = [ [3,[2,[1,[7,3]]]] , [6,[5,[4,[3,2]]]] ]
+
+
+Explosion:
+----------
+
+Happens when a pair is nested inside four pairs.
+The left node goes to the first number on the left.
+The right node goes to the first number on the right.
+
+          .-+-.  .--+---.
+          |   |  |      |
+          v   |  |      v
+[[N2,[N4,[N5,[N6,N7]]]],N3]
+
+ |      o               o
+ |     / \             / \
+ 1    o   N3          o   N3+N7
+ |   / \             / \
+ 2  N2  o           N2  o
+ |     / \      =>     / \
+ 3    N4  o           N4  o 
+ |       / \             / 
+ 4      N5  o        N5+N6 
+ |         / \  
+ +----5-> N6  N7
+
+        
+Splitting:
+----------
+
+Happens if any pair number N is >= 10.
+The number is replaced with a pair in which:
+- the left number is floor(N/2)
+- the right number is ceil(N/2)
+
+   o           o
+  / \   =>    / \
+ 13  8       o   8
+            / \
+           6   7
+
+
+Storage:
+--------
+
+I'll go for a binary tree structure in which nodes reference their
+surrounding nodes. That makes it easy to replace a node with a new node
+after reduction operations.
+
+For the final magnitude calculation, a visitor pattern might be the
+way to go.
+
