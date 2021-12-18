@@ -29,23 +29,58 @@ Explosion:
 Happens when a pair is nested inside four pairs.
 The left node goes to the first number on the left.
 The right node goes to the first number on the right.
+The node itself becomes a number node with value = 0.
 
-          .-+-.  .--+---.
-          |   |  |      |
-          v   |  |      v
-[[N2,[N4,[N5,[N6,N7]]]],N3]
+          .-+-.  .---+---.
+          |   |  |       |
+          v   |  |       v
+[[N2,[N5,[N6,[N7,N8]]]],[N3,N4]] => [[N2,[N5,[N6+N7,0]]],[N3+N8,N4]]
 
- |      o               o
- |     / \             / \
- 1    o   N3          o   N3+N7
- |   / \             / \
- 2  N2  o           N2  o
- |     / \      =>     / \
- 3    N4  o           N4  o 
- |       / \             / 
- 4      N5  o        N5+N6 
- |         / \  
- +----5-> N6  N7
+ |      o                     o
+ |     / \                   / \
+ 1    o   o---.             o   o---.
+ |   / \   \   \           / \   \   \
+ 2  N2  o   N3  N4        N2  o N3+N8 N4
+ |     / \           =>      / \
+ 3    N5  o                 N5  o 
+ |       / \                   / \
+ 4      N6  o              N7+N6  0 
+ |         / \       
+ +----5-> N7  N8
+
+
+Some basic cases (drawn for visualizing how to do find the target nodes to modify):
+
+[[[[[1,2],3],4],5],6]   [1,[2,[3,[4,[5,6]]]]]  [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
+[[[[0,5],4],5],6]       [1,[2,[3,[9,0]]]]      [[[[0,7],4],[15,[0,13]]],[1,1]]
+ 
+           *                 *                              .-o-.    
+          / \               / \                            /     \
+         *   6             1   *                        .-o-.     o
+        / \                   / \                      /     \   / \
+       *   5                 2   *                    o       * 1   1
+      / \                       / \                  / \     / \
+     *   4                     3   *                o   4  [7]  *
+    / \                           / \              / \         / \
+   *  (3)                       [4]  *            0   7       *  (9)
+  / \                               / \                      / \
+[1] (2)                           [5] (6)                  [8] (4)
+
+
+[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
+[[[[0,7],4],[[7,8],[6,0]]],[8,1]]
+
+           .--*-----.
+          /          *
+         *----.     / \
+        /      \  (1)  1
+       o       .*-.
+      / \     /    \
+     o   4   *      *
+    / \     / \    / \
+   0   7   7  (8) 0   *
+                     / \
+                   [6   7]
 
         
 Splitting:
@@ -53,8 +88,11 @@ Splitting:
 
 Happens if any pair number N is >= 10.
 The number is replaced with a pair in which:
+
 - the left number is floor(N/2)
 - the right number is ceil(N/2)
+
+[13,8]  => [[6,7],8]
 
    o           o
   / \   =>    / \
