@@ -1,5 +1,5 @@
 #!/bin/env python3
-import re,math,itertools as i
+import re,itertools as i
 X,Y={},{};a,b,c,d=tuple(map(int,re.findall('(-?\d+)',next(open("input.txt")))))
 for w in range(c,-c):
  l,y,s=w,0,0
