@@ -1,4 +1,4 @@
-#!/bin/env python3.10
+#!/bin/env python3
 
 import unittest
 from snail_tree import *
