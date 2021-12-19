@@ -147,42 +147,21 @@ class SnailExploder(SnailVisitor):
         if self.depth != 5 or self.exploded:
             return
 
-        #               o .
-        #             .     .
-        #            *       ....
-        #          .   .
-        #       .N       * .
-        #    .   .       .   .
-        #   o     o      *     o
-        #  4 0   5 0    . .   9  5
-        #          ^  .    .
-        #          | *      o
-        #          [4] 5    2  6
+        def modify_closest_number(left):
+            prev_node = pair
+            node = pair.parent
+            while node and (node.left if left else node.right) == prev_node:
+                prev_node = node
+                node = node.parent
+            if node:
+                node = node.left if left else node.right
+                while not isinstance(node, SnailNumber):
+                    node = node.right if left else node.left
+                add_value = pair.left.value if left else pair.right.value
+                node.set_value(node.value + add_value)
 
-        # Find first number node to the left.
-        prev_node = pair
-        node = pair.parent
-        while node and node.left == prev_node:
-            prev_node = node
-            node = node.parent
-        if node:
-            node = node.left
-            while not isinstance(node, SnailNumber):
-                node = node.right
-            node.set_value(node.value + pair.left.value)
-
-        # Find first number node to the right.
-        prev_node = pair
-        node = pair.parent
-        while node and node.right == prev_node:
-            prev_node = node
-            node = node.parent
-        if node:
-            node = node.right
-            while not isinstance(node, SnailNumber):
-                node = node.left
-            node.set_value(node.value + pair.right.value)
-
+        modify_closest_number(left=True)
+        modify_closest_number(left=False)
         pair.replace_with(SnailNumber(0))
         self.exploded = True
 
