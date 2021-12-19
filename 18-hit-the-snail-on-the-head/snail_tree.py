@@ -94,8 +94,7 @@ class SnailRoot(SnailPair):
 
     def __add__(self, other: "SnailRoot"):
         summed = SnailRoot(
-            SnailPair(self.left, self.right),
-            SnailPair(other.left, other.right)
+            SnailPair(self.left, self.right), SnailPair(other.left, other.right)
         )
         summed.reduce()
         return summed

@@ -13,9 +13,8 @@ with open(argv[1], "r") as f:
     snails = [line.strip() for line in f]
 
 max_magnitude = 0
-for a,b in permutations(snails, 2):
+for a, b in permutations(snails, 2):
     c = parse_snail_code(a) + parse_snail_code(b)
     max_magnitude = max(max_magnitude, c.magnitude())
 
 print("Max possible magnitude:", max_magnitude)
-
