@@ -4,17 +4,15 @@ from collections.abc import Iterable
 
 
 class SnailException(Exception):
-  pass
+    pass
 
 
 class SnailVisitor:
-    def __init__(self, node, initial_result=None):
+    def __init__(self, node):
         self.node = node
-        self.result = initial_result
 
     def run(self):
         self.node.accept(self)
-        return self.result
 
     def visit_pair_start(self, pair):
         pass
@@ -40,6 +38,10 @@ class SnailNode:
         formatter = SnailStringFormatter(self)
         return formatter.run()
 
+    def magnitude(self):
+        computer = SnailMagnitudeComputer(self)
+        return computer.run()
+
 
 class SnailNumber(SnailNode):
     def __init__(self, value: int):
@@ -54,7 +56,9 @@ class SnailNumber(SnailNode):
 
 
 class SnailPair(SnailNode):
-    def __init__(self, left:SnailNode=SnailNumber(0), right:SnailNode=SnailNumber(0)):
+    def __init__(
+        self, left: SnailNode = SnailNumber(0), right: SnailNode = SnailNumber(0)
+    ):
         super().__init__()
         self.left = left
         self.left.parent = self
@@ -80,11 +84,21 @@ class SnailPair(SnailNode):
 
 
 class SnailRoot(SnailPair):
-    def __init__(self, left:SnailNode=SnailNumber(0), right:SnailNode=SnailNumber(0)):
+    def __init__(
+        self, left: SnailNode = SnailNumber(0), right: SnailNode = SnailNumber(0)
+    ):
         super().__init__(left, right)
 
     def replace_with(self, node):
         raise SnailException("The root node cannot be replaced")
+
+    def __add__(self, other: "SnailRoot"):
+        summed = SnailRoot(
+            SnailPair(self.left, self.right),
+            SnailPair(other.left, other.right)
+        )
+        summed.reduce()
+        return summed
 
     def reduce(self):
         exploder = SnailExploder(self)
@@ -97,7 +111,12 @@ class SnailRoot(SnailPair):
 
 class SnailStringFormatter(SnailVisitor):
     def __init__(self, node: SnailNode):
-        super().__init__(node, "")
+        super().__init__(node)
+
+    def run(self):
+        self.result = ""
+        super().run()
+        return self.result
 
     def visit_number(self, node: SnailNode):
         self.result += str(node.value)
@@ -115,10 +134,9 @@ class SnailStringFormatter(SnailVisitor):
 class SnailExploder(SnailVisitor):
     def __init__(self, node: SnailNode):
         super().__init__(node)
-        self.exploded = False
-        self.depth = 0
 
     def run(self):
+        self.depth = 0
         self.exploded = False
         super().run()
         return self.exploded
@@ -130,6 +148,18 @@ class SnailExploder(SnailVisitor):
         if self.depth != 5 or self.exploded:
             return
 
+        #               o .
+        #             .     .
+        #            *       ....
+        #          .   .
+        #       .N       * .
+        #    .   .       .   .
+        #   o     o      *     o
+        #  4 0   5 0    . .   9  5
+        #          ^  .    .
+        #          | *      o
+        #          [4] 5    2  6
+
         # Find first number node to the left.
         prev_node = pair
         node = pair.parent
@@ -139,10 +169,7 @@ class SnailExploder(SnailVisitor):
         if node:
             node = node.left
             while not isinstance(node, SnailNumber):
-                if isinstance(node.right, SnailNumber):
-                    node = node.right
-                else:
-                    node = node.left
+                node = node.right
             node.set_value(node.value + pair.left.value)
 
         # Find first number node to the right.
@@ -154,10 +181,7 @@ class SnailExploder(SnailVisitor):
         if node:
             node = node.right
             while not isinstance(node, SnailNumber):
-                if isinstance(node.left, SnailNumber):
-                    node = node.left
-                else:
-                    node = node.right
+                node = node.left
             node.set_value(node.value + pair.right.value)
 
         pair.replace_with(SnailNumber(0))
@@ -170,7 +194,6 @@ class SnailExploder(SnailVisitor):
 class SnailSplitter(SnailVisitor):
     def __init__(self, node: SnailNode):
         super().__init__(node)
-        self.splitted = False
 
     def run(self):
         self.splitted = False
@@ -187,8 +210,27 @@ class SnailSplitter(SnailVisitor):
 
 class SnailMagnitudeComputer(SnailVisitor):
     def __init__(self, node: SnailNode):
-        super().__init__(node, 0)
-        self.splitted = False
+        super().__init__(node)
+
+    def run(self):
+        self.result = None
+        self.stack = []
+        super().run()
+        return self.result
+
+    def visit_pair_start(self, pair):
+        self.stack.append([])
+
+    def visit_number(self, number):
+        self.stack[-1].append(number.value)
+
+    def visit_pair_end(self, pair):
+        frame = self.stack.pop()
+        magnitude = 3 * frame[0] + 2 * frame[1]
+        if not self.stack:
+            self.result = magnitude
+        else:
+            self.stack[-1].append(magnitude)
 
 
 class SnailParserException(Exception):
@@ -214,7 +256,7 @@ class SnailParser:
 
     def _next(self):
         c = self._peek()
-        self.index += 1 
+        self.index += 1
         return c
 
     def _parse(self):
@@ -252,7 +294,6 @@ class SnailParser:
         self._error(f"Expected node start (opening '[' or digit), got '{c}'")
 
 
-def parse_snail_code(code):       
+def parse_snail_code(code):
     parser = SnailParser()
     return parser.parse(code)
-

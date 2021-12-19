@@ -101,6 +101,14 @@ The number is replaced with a pair in which:
            6   7
 
 
+Compute the magnitude:
+----------------------
+
+The magnitude of a pair is 3 times the magnitude of its left element plus 2
+times the magnitude of its right element. The magnitude of a regular number
+is just that number.
+
+
 Storage:
 --------
 

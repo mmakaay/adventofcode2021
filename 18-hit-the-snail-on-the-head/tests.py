@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/bin/env python3.10
 
 import unittest
 from snail_tree import *
@@ -76,6 +76,12 @@ class TestSnailNodes(unittest.TestCase):
         )
         self.assertEqual("[[[1,2],[3,[4,5]]],[6,7]]", str(root))
 
+    def test_sum_two_numbers(self):
+        root1 = parse_snail_code("[1,1]")
+        root2 = parse_snail_code("[2,2]")
+        root3 = root1 + root2
+        self.assertEqual("[[1,1],[2,2]]", str(root3))
+
 
 class TestSnailVisitor(unittest.TestCase):
     def test_can_create_visitor(self):
@@ -122,7 +128,7 @@ class TestSnailParser(unittest.TestCase):
                 self.assertEqual(code, str(root))
 
     def test_parser_error_cases(self):
-        for code,error_pos, expected_in_msg in [
+        for code, error_pos, expected_in_msg in [
             ("", 0, "Unexpected end"),
             ("[", 1, "Unexpected end"),
             ("[1", 2, "Unexpected end"),
@@ -155,7 +161,7 @@ class TestSnailExploder(unittest.TestCase):
         exploded = SnailExploder(root).run()
         self.assertFalse(exploded)
         self.assertEqual("[9,9]", str(root))
-        
+
     def test_explode_one_to_the_left(self):
         root = parse_snail_code("[1,[2,[3,[4,[5,6]]]]]")
         exploded = SnailExploder(root).run()
@@ -174,14 +180,27 @@ class TestSnailExploder(unittest.TestCase):
 
     def test_explode_cases_from_assignment(self):
         for code, exploded in [
-            ("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]", "[[[[0,7],4],[7,[[8,4],9]]],[1,1]]"),
+            (
+                "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]",
+                "[[[[0,7],4],[7,[[8,4],9]]],[1,1]]",
+            ),
             ("[[[[0,7],4],[7,[[8,4],9]]],[1,1]]", "[[[[0,7],4],[15,[0,13]]],[1,1]]"),
-            ("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]", "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"), 
+            (
+                "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]",
+                "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
+            ),
             ("[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]"),
             ("[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]"),
             ("[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]"),
-            ("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]", "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
+            (
+                "[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]",
+                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
+            ),
             ("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]", "[[3,[2,[8,0]]],[9,[5,[7,0]]]]"),
+            (
+                "[[[[4,0],[5,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]",
+                "[[[[4,0],[5,4]],[[0,[7,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]",
+            ),
         ]:
             with self.subTest():
                 root = parse_snail_code(code)
@@ -215,7 +234,10 @@ class TestSnailSplitter(unittest.TestCase):
     def test_split_cases_from_assignment(self):
         for code, splitted in [
             ("[[[[0,7],4],[15,[0,13]]],[1,1]]", "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]"),
-            ("[[[[0,7],4],[[7,8],[0,13]]],[1,1]]", "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]"),
+            (
+                "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]",
+                "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]",
+            ),
         ]:
             with self.subTest():
                 root = parse_snail_code(code)
@@ -259,16 +281,62 @@ class TestSnailReduce(unittest.TestCase):
         reduced = root.reduce()
         self.assertTrue(reduced)
         self.assertEqual("[[[[0,6],[7,8]],[9,[5,5]]],[5,6]]", str(root))
-        [[[[0,[9,9]],8],7],6]
+
+    def test_reduce_with_examples_from_assignment(self):
+        for code, expected_reduced in [
+            (
+                "[[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]",
+                "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]",
+            ),
+            (
+                "[[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]],[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]]",
+                "[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]",
+            ),
+            (
+                "[[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]],[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]]",
+                "[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]",
+            ),
+        ]:
+            with self.subTest():
+                root = parse_snail_code(code)
+                root.reduce()
+                self.assertEqual(expected_reduced, str(root))
 
 
-
-class TestSnailReduce(unittest.TestCase):
+class TestSnailMagnitude(unittest.TestCase):
     def test_magnitude_simple(self):
         root = parse_snail_code("[1,2]")
         magnitude = SnailMagnitudeComputer(root).run()
-        self.assertEqual((3*1 + 2*2), magnitude)
+        self.assertEqual((3 * 1 + 2 * 2), magnitude)
+
+    def test_magnitude_with_pair(self):
+        root = parse_snail_code("[[1,2],3]")
+        magnitude = SnailMagnitudeComputer(root).run()
+        self.assertEqual((3 * (3 * 1 + 2 * 2) + 2 * 3), magnitude)
+
+    def test_magnitude_with_two_pairs(self):
+        root = parse_snail_code("[[1,2],[3,4]]")
+        magnitude = SnailMagnitudeComputer(root).run()
+        self.assertEqual((3 * (3 * 1 + 2 * 2) + 2 * (3 * 3 + 2 * 4)), magnitude)
+
+    def test_magnitude_with_examples_from_assignment(self):
+        for code, expected_magnitude in [
+            ("[[1,2],[[3,4],5]]", 143),
+            ("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384),
+            ("[[[[1,1],[2,2]],[3,3]],[4,4]]", 445),
+            ("[[[[3,0],[5,3]],[4,4]],[5,5]]", 791),
+            ("[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137),
+            ("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488),
+        ]:
+            with self.subTest():
+                root = parse_snail_code(code)
+                magnitude = SnailMagnitudeComputer(root).run()
+                self.assertEqual(expected_magnitude, magnitude)
+
+    def test_magnitude_method(self):
+        root = parse_snail_code("[[1,2],[3,4]]")
+        magnitude = root.magnitude()
+        self.assertEqual(55, magnitude)
 
 
 unittest.main()
-
