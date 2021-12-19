@@ -28,10 +28,8 @@ def sum(a,b):
    v=N(a,s,t);l=v//2;r=v-l
    a[s:t]=["["]+list(str(l))+[","]+list(str(r))+["]"]
  return "".join(a)
-def magnitude(a):
- R=re.compile('\[(\d+),(\d+)\]')
- while R.search(a):
-  a = R.sub(lambda x:str(3*int(x[1])+2*int(x[2])),a)
- return a
 c=reduce(sum,(l.strip() for l in open("input.txt")))
-print(magnitude(c))
+R=re.compile('\[(\d+),(\d+)\]')
+while R.search(c):
+ c = R.sub(lambda x:str(3*int(x[1])+2*int(x[2])),c)
+print(c)
