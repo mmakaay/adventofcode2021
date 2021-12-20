@@ -31,7 +31,7 @@ def load_image(f):
 
 def enhance(image, algorithm):
     image = enhance_step(image, algorithm, ".")
-    infinite = algorithm[("...","...","...")]
+    infinite = algorithm[("...", "...", "...")]
     image = enhance_step(image, algorithm, infinite)
     return image
 
@@ -45,12 +45,12 @@ def enhance_step(image, algorithm, infinite):
 
 def ensure_image_border(image, algorithm, infinite):
     width = len(image[0])
-    ver_padding = infinite*(width+6)
-    hor_padding = infinite*3
+    ver_padding = infinite * (width + 6)
+    hor_padding = infinite * 3
     return (
-        [ver_padding]*3 +
-        [hor_padding + line + hor_padding for line in image] +
-        [ver_padding]*3
+        [ver_padding] * 3
+        + [hor_padding + line + hor_padding for line in image]
+        + [ver_padding] * 3
     )
 
 
@@ -62,24 +62,28 @@ def apply_algorithm_to_image(image, algorithm):
     width = len(image[0])
     height = len(image)
     new_image = []
-    for y in range(1,height-1):
+    for y in range(1, height - 1):
         new_image.append(
             "".join(
                 apply_algorithm_to_pixel(image, x, y, algorithm)
-                for x in range(1,width-1)
+                for x in range(1, width - 1)
             )
         )
     return new_image
 
 
 def apply_algorithm_to_pixel(image, x, y, algorithm):
-    lookup = (image[y-1][x-1:x+2], image[y][x-1:x+2], image[y+1][x-1:x+2])
+    lookup = (
+        image[y - 1][x - 1 : x + 2],
+        image[y][x - 1 : x + 2],
+        image[y + 1][x - 1 : x + 2],
+    )
     new_pixel = algorithm[lookup]
     return new_pixel
 
 
 def count_lit_pixels(image):
-    return sum(sum(c=="#" for c in line) for line in image)
+    return sum(sum(c == "#" for c in line) for line in image)
 
 
 if len(argv) != 2:
@@ -88,4 +92,4 @@ if len(argv) != 2:
 
 algorithm, image = load_algorithm_and_image(argv[1])
 image = enhance(image, algorithm)
-print(count_lit_pixels(image))                                                                     
+print(count_lit_pixels(image))
