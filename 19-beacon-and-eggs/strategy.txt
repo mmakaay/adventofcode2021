@@ -1,0 +1,211 @@
+What's up, doc?
+===============
+
+Since coordinate systems are relative, let's start by defining
+the coordinate system and the meaning of "UP" here:
+
+       UP
+       +Z  +Y
+        |  /
+        |
+        |/
+ -X- - -o--------+X RIGHT
+       /|
+      /
+     /  |
+   -Y  -Z
+       DOWN
+
+
+Possible rotations for a scanner
+================================
+
+A scanner can be rotated over all possible axes with 90 degrees steps. For
+making imagining things easier, let's work with a Rubik's cube from now on,
+representing the scanner and its beacons. The white side of the cube is
+defined as "UP" (since that's where the Rubik's logo goes).
+
+All possible rotation states can be reached using the following two
+transformations:
+
+1 Pointing the (white) upside of the cube in any of the axes directions:
+  +X, -X, +Y, -Y, +Z, -Z
+  I'll call this "rotation".
+
+2 After doing this, the cube can be rotated around this axis. Let's
+  say you take a look at the blue side of the cube, you can rotate
+  the cube around the axis 4 times before the blue side ends back
+  up where it started.
+  I'll call this "twisting".
+
+By combining all 6 possible rotations and 4 possible twists, you get
+to the 24 possible scanner orientations as described in the assignment.
+
+To bring back the coordinate system into the reference state, the
+twist and rotation operations need to be reverted.
+
+
+Reverting twists
+================
+
+Let's first make things a bit simpler by going 2D instead of 3D.
+Given point P1 with X=4,Y=2, the 90 degrees twists (you could say,
+these are rotations around the now invisible Z-axis) are:
+
+           Y
+       P2  _                 P1   X=4  Y=2
+           _                 P2   X=-2 Y=4
+           _ 2     P1        P3   X=-4 Y=-2   
+           _                 P4   X=2  Y=-4
+ X |-|-|-|-+-|-|-|-|-|   
+           _       4         Generalized with A=X and B=Y, these are:
+   P3      _                 P1   A    B     no rotation
+           _                 P2  -B    A     90 degrees CCW
+           _   P4            P3  -A   -B     180 degrees
+                             P4   B   -A     90 degrees CW
+
+Note that the four options for rotation also represent the four possible
+options for bringing the coordinate back to its original position.
+Here are example rotations + restores, based on the above:
+
+  (4,2) + [ A, B] = ( 4, 2) + [ A, B] = (4,2)  no rotation
+  (4,2) + [-B, A] = (-2, 4) + [ B,-A] = (4,2)  90 degrees CCW
+  (4,2) + [-A,-B] = (-4,-2) + [-B,-A] = (4,2)  180 degrees
+  (4,2) + [ B,-A] = ( 2,-4) + [-B, A] = (4,2)  90 degrees CW
+  
+
+This rotation generalization represents step 2 from the cube rotation
+visualization. For any of the axis directions, these 4 general
+transformation will apply for getting that face back to its correct state.
+Translating this to the coordinate system as seen from the cube / scanner,
+where Z is pointing UP and X and Y are part of the twisting transformation:
+
+  (X, Y, Z) -> ( X,  Y, Z)
+  (X, Y, Z) -> (-Y,  X, Z)
+  (X, Y, Z) -> (-X, -Y, Z)
+  (X, Y, Z) -> ( Y, -X, Z)
+
+
+Reverting rotation
+==================
+
+0 degrees
+---------
+
+Since Z+ was defined as "UP" in the beginning, we can state that no rotation
+needs to be reverted when the scanner is already in the up position. So this
+is the simplest one to "revert". The required transformation is:
+
+   (X, Y, Z) -> (X, Y, Z)
+
+180 degrees
+-----------
+
+The cube is upside down. This means that the upside of the cube is pointing
+into the -Z direction. The shortes route to get into (and therefore also out
+of) this position is to rotate 180 degrees over either the X or Y axis.
+
+What is interesting now, is that it doesn't matter what axis to use for
+the 180 degrees rotation. The upper face of the cube stays fully intact
+during this operation. The only difference is that between the two options,
+the upper face is twisted 180 degrees. No problem, since we'll have to apply
+all four twisting transformations to the face anyway.
+
+Now let's transform the whole cube 180 degrees.
+I'll go for rotation around the Y axis (fully arbitrary).
+That means that the Y coordinates will remain the same.
+
+With the Y coordinates out of the way, the problem is reduced to a 2D
+rotation problem using the Z and X axes. We've already seen the generalization
+for a 180 degrees rotation when looking at twists: (A, B) -> (-A, -B).
+Combining this knowledge, the full transformation looks like:
+
+  (X, Y, Z) -> (-X, Y, -Z)
+
+90 degrees
+----------
+
+The cube is sideways with its upside in one of four possible directions:
+
+- +X : rotated 90 degrees CW over the Y axis
+- -X : rotated 90 degrees CCW over the Y axis
+- +Y : rotated 90 degrees CW over the X axis
+- -Y : rotated 90 degrees CCW over the X axis
+
+Like with the 180 degrees rotation, knowing a rotation axis brings down the
+problem to a 2D rotation. The CW and CCW rotation generalizations,
+respectively (B, -A) and (-B, A), can be used to find the required
+transformations to revert the rotation.
+
+- +X : rotate 90 degrees CCW over Y, A=X, B=Z : (X, Y, Z) -> (-Z, Y,  X)
+- -X : rotate 90 degrees CW over Y, A=X, B=Z  : (X, Y, Z) -> ( Z, Y, -X)
+- +Y : rotate 90 degrees CCW over X, A=Y, B=Z : (X, Y, Z) -> (X, -Z,  Y)
+- -Y : rotate 90 degrees CW over X, A=Y, B=Z  : (X, Y, Z) -> (X,  Z, -Y)
+
+
+Combining rotations and twists
+==============================
+
+The tranformations for rotations and twists can be combined to build a
+series of transformations of which one will always bring the coordinate
+system of the cube in line with the correct reference system.
+These are all derived transformations from above.
+
+  Rotations:
+
+  A  : (X, Y, Z) -> ( X,  Y,  Z)  0 degrees
+  B  : (X, Y, Z) -> (-Z,  Y,  X)  90 degrees CCW over Y
+  C  : (X, Y, Z) -> ( Z,  Y, -X)  90 degrees CW over Y
+  D  : (X, Y, Z) -> ( X, -Z,  Y)  90 degrees CCW over X
+  E  : (X, Y, Z) -> ( X,  Z, -Y)  90 degrees CW over Y
+  F  : (X, Y, Z) -> (-X,  Y, -Z)  180 degrees over Y
+
+  Twists:
+
+  1  : (X, Y, Z) -> ( X,  Y,  Z)  0 degrees
+  2  : (X, Y, Z) -> (-Y,  X,  Z)  90 degrees CCW
+  3  : (X, Y, Z) -> (-X, -Y,  Z)  180 degrees
+  4  : (X, Y, Z) -> ( Y, -X,  Z)  90 degrees CW (or 270 degrees CCW)
+
+When combining and chaining these, we find:
+
+  A1 : (X, Y, Z) -> ( X,  Y,  Z) -> ( X,  Y,  Z)
+  A2 : (X, Y, Z) -> ( X,  Y,  Z) -> (-Y,  X,  Z)
+  A3 : (X, Y, Z) -> ( X,  Y,  Z) -> (-X, -Y,  Z)
+  A4 : (X, Y, Z) -> ( X,  Y,  Z) -> ( Y, -X,  Z)
+
+  B1 : (X, Y, Z) -> (-Z,  Y,  X) -> (-Z,  Y,  X)
+  B2 : (X, Y, Z) -> (-Z,  Y,  X) -> (-Y, -Z,  X)
+  B3 : (X, Y, Z) -> (-Z,  Y,  X) -> ( Z  -Y,  X)
+  B4 : (X, Y, Z) -> (-Z,  Y,  X) -> ( Y,  Z,  X)
+
+  C1 : (X, Y, Z) -> ( Z,  Y, -X) -> ( Z,  Y, -X)
+  C2 : (X, Y, Z) -> ( Z,  Y, -X) -> (-Y,  Z, -X)
+  C3 : (X, Y, Z) -> ( Z,  Y, -X) -> (-Z, -Y, -X)
+  C4 : (X, Y, Z) -> ( Z,  Y, -X) -> ( Y, -Z, -X)
+
+  D1 : (X, Y, Z) -> ( X, -Z,  Y) -> ( X, -Z,  Y)
+  D2 : (X, Y, Z) -> ( X, -Z,  Y) -> ( Z,  X,  Y)
+  D3 : (X, Y, Z) -> ( X, -Z,  Y) -> (-X,  Z,  Y)
+  D4 : (X, Y, Z) -> ( X, -Z,  Y) -> (-Z, -X,  Y)
+
+  E1 : (X, Y, Z) -> ( X,  Z, -Y) -> ( X,  Z, -Y)
+  E2 : (X, Y, Z) -> ( X,  Z, -Y) -> (-Z,  X, -Y)
+  E3 : (X, Y, Z) -> ( X,  Z, -Y) -> (-X, -Z, -Y)
+  E4 : (X, Y, Z) -> ( X,  Z, -Y) -> ( Z, -X, -Y)
+
+  F1 : (X, Y, Z) -> (-X,  Y, -Z) -> (-X,  Y, -Z)
+  F2 : (X, Y, Z) -> (-X,  Y, -Z) -> (-Y, -X, -Z)
+  F3 : (X, Y, Z) -> (-X,  Y, -Z) -> ( X, -Y, -Z)
+  F4 : (X, Y, Z) -> (-X,  Y, -Z) -> ( Y,  X, -Z)
+
+
+Code
+====
+
+Now the transformations that can be used for the beacon data sets
+are known, I can start the actual programming. Not sure yet if I
+will program the transformations as two steps (rotate and twist),
+of as a single step using the combined transformations. Either
+way works, so no time to waste!
+
