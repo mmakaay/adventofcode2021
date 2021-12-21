@@ -59,7 +59,7 @@ these are rotations around the now invisible Z-axis) are:
            _                 P4   X=2  Y=-4
  X |-|-|-|-+-|-|-|-|-|   
            _       4         Generalized with A=X and B=Y, these are:
-   P3      _                 P1   A    B     no rotation
+   P3      _                 P1   A    B     0 degrees
            _                 P2  -B    A     90 degrees CCW
            _   P4            P3  -A   -B     180 degrees
                              P4   B   -A     90 degrees CW
@@ -68,7 +68,7 @@ Note that the four options for rotation also represent the four possible
 options for bringing the coordinate back to its original position.
 Here are example rotations + restores, based on the above:
 
-  (4,2) + [ A, B] = ( 4, 2) + [ A, B] = (4,2)  no rotation
+  (4,2) + [ A, B] = ( 4, 2) + [ A, B] = (4,2)  0 degrees
   (4,2) + [-B, A] = (-2, 4) + [ B,-A] = (4,2)  90 degrees CCW
   (4,2) + [-A,-B] = (-4,-2) + [-B,-A] = (4,2)  180 degrees
   (4,2) + [ B,-A] = ( 2,-4) + [-B, A] = (4,2)  90 degrees CW
@@ -80,10 +80,10 @@ transformation will apply for getting that face back to its correct state.
 Translating this to the coordinate system as seen from the cube / scanner,
 where Z is pointing UP and X and Y are part of the twisting transformation:
 
-  (X, Y, Z) -> ( X,  Y, Z)
-  (X, Y, Z) -> (-Y,  X, Z)
-  (X, Y, Z) -> (-X, -Y, Z)
-  (X, Y, Z) -> ( Y, -X, Z)
+  (X, Y, Z) -> ( X,  Y, Z)  0 degrees
+  (X, Y, Z) -> (-Y,  X, Z)  90 degrees CCW
+  (X, Y, Z) -> (-X, -Y, Z)  180 degrees
+  (X, Y, Z) -> ( Y, -X, Z)  90 degrees CW
 
 
 Reverting rotation
@@ -208,4 +208,5 @@ are known, I can start the actual programming. Not sure yet if I
 will program the transformations as two steps (rotate and twist),
 of as a single step using the combined transformations. Either
 way works, so no time to waste!
+
 

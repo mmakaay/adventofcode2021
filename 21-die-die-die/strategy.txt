@@ -1,0 +1,52 @@
+Using the deterministic die
+===========================
+
+3 rolls each time, 3 consecutive numbers
+So a good way to generate total scores would be:
+
+- turn n = 0 at start
+- previous turn t = 0 at start
+- current turn x = ((sum of all numbers up to n = n*(n+1)//2) - t) % 100
+- t = current turn
+- n = n + 1
+
+This should be enough to do some brute forcing on the game.
+
+
+Using the dirac die
+===================
+
+After the first three throws, we have the following universes:
+
+                                   o
+              1                    2                    3  
+       1      2      3      1      2      3      1      2      3
+     1 2 3  1 2 3  1 2 3  1 2 3  1 2 3  1 2 3  1 2 3  1 2 3  1 2 3  
+
+With these total throw values:
+
+    3 4 5   4 5 6  5 6 7  4 5 6  5 6 7  6 7 8  5 6 7  6 7 8  7 8 9   
+
+While many universes have spawned, in many of the universes the winner
+distribution will be the same, because the total throw value is what
+counts. So looking at the duplicates, the distribution after one turn is:
+
+    1 x 3
+    3 x 4
+    6 x 5
+    7 x 6
+    6 x 7
+    3 x 8
+    1 x 9
+
+So instead of 27 universes to traverse, we can traverse "only" 7 and use the
+above distribution counts as multipliers in the process.
+
+Given the minimum score of 3 for a round and the winning score of 21, we know
+that a game can have at most 2*7 turns. When we wouldn't cut down on the fan
+out per turn, we'd have 27**(2*7) = 109418989131512359209 final universes to
+consider (kaboom!) With the 7 condensed universes, it's cut down to
+7**(2*7) = 678223072849 (still kaboom!)
+
+So conclusion is that brute forcing using these condensed outcomes isn't feasible.
+
