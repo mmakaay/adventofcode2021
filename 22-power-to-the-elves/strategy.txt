@@ -1,0 +1,33 @@
+Part 1
+======
+
+Go for brute force. Shouldn't be too big of a problem for a 100x100x100 space.
+
+
+Part 2
+======
+
+Ouch... brute force will never work, so a better algorithm is required.
+
+What might work is treating the steps as adding actual shapes to the grid.
+When there's an overlap with an existing shape, then I could split the overlapped
+shape into multiple shapes, dropping the part that is overlapped.
+After splitting, an off state shape can be dropped, since it's the default state.
+In the end, the size of the on shapes can be summed up to find the answer. 
+
+
+                        ---------------
+                       /             /|
+                      /             / |
+                     /             /  |
+                    /             /  .........
+                   ---------------    |    . .
+                   |             |    /   .  .
+                   |     .       |   /   .   .
+                   |    .................    .
+                   |    .        | /    .    .
+                   |    .        |/     .   .
+                   -----.---------      .  .
+                        .               . .
+                        .               ..
+                        .................
