@@ -16,14 +16,15 @@ def load_reboot_steps():
     with open(argv[1], "r") as f:
         for line in f:
             if m := syntax.match(line):
-                onoff = m[1] == "on"
-                x1 = min(int(m[2]), int(m[5]))
-                y1 = min(int(m[3]), int(m[6]))
-                z1 = min(int(m[4]), int(m[7]))
-                x2 = max(int(m[2]), int(m[5]))
-                y2 = max(int(m[3]), int(m[6]))
-                z2 = max(int(m[4]), int(m[7]))
-                steps.append((onoff, (x1, y1, z1), (x2, y2, z2)))
+                turn_on = m[1] == "on"
+                x1 = min(int(m[2]), int(m[3]))
+                y1 = min(int(m[4]), int(m[5]))
+                z1 = min(int(m[6]), int(m[7]))
+                x2 = max(int(m[2]), int(m[3]))
+                y2 = max(int(m[4]), int(m[5]))
+                z2 = max(int(m[6]), int(m[7]))
+                step = (turn_on, (x1, y1, z1), (x2, y2, z2))
+                steps.append(step)
             else:
                 print("Syntax error in: ", line)
     return steps
@@ -32,6 +33,7 @@ def load_reboot_steps():
 def boot_up(reactor, steps):
     while steps:
         steps, reactor = execute_next_step(steps, reactor)
+    return reactor
 
 
 def execute_next_step(steps, reactor):
@@ -39,7 +41,7 @@ def execute_next_step(steps, reactor):
     overlaps = find_overlaps(reactor, step)
     if overlaps:
         reactor = handle_overlaps(reactor, step, overlaps)
-    print("Add step to reactor")
+    turn_on, _, _ = step
     reactor.add(step)
     return steps, reactor
 
@@ -59,7 +61,6 @@ def overlapping(a, b):
 
 
 def handle_overlaps(reactor, step, overlaps):
-    print("Handle", len(overlaps), "overlappings")
     for overlapped in overlaps:
         reactor.remove(overlapped)
         splitted = split_overlapped(overlapped, step)
@@ -68,26 +69,79 @@ def handle_overlaps(reactor, step, overlaps):
 
 
 def split_overlapped(overlapped, step):
-    _, (ox1, oy1, oz1), (ox2, oy2, oz2) = overlapped
-    _, (sx1, sy1, sz1), (sx2, sy2, sz2) = step
+    o_on, (ox1, oy1, oz1), (ox2, oy2, oz2) = overlapped
+    s_on, (sx1, sy1, sz1), (sx2, sy2, sz2) = step
+    #print("Process overlapped ",overlapped)
+    if ox1 < sx1 <= ox2:
+        #print("input x 1", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print("step", step)
+        keep = (o_on, (ox1, oy1, oz1), (sx1-1, oy2, oz2))
+        ox1 = sx1
+        yield keep
+        #print("keep x 1 @", sx1, "=", keep)
+        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print()
+    if ox1 <= sx2 < ox2:
+        #print("input x 2", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print("step", step)
+        keep = (o_on, (sx2+1, oy1, oz1), (ox2, oy2, oz2))
+        ox2 = sx2
+        yield keep
+        #print("keep x 2 @", sx2, "=", keep)
+        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print()
+    if oy1 < sy1 <= oy2:
+        #print("input y 1", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print("step", step)
+        keep = (o_on, (ox1, oy1, oz1), (ox2, sy1-1, oz2))
+        yield keep
+        oy1 = sy1
+        #print("keep y 1 @", sy1, "=", keep)
+        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print()
 
-    print("Evaluate --", overlapped, step)
-    if sx1 >= ox1 and sx1 <= ox2:
-        print("Split low x plane")
-    if sx2 >= ox1 and sx2 <= ox2:
-        print("Split high x plane")
-    if sy1 >= oy1 and sy1 <= oy2:
-        print("Split low y plane")
-    if sy2 >= oy1 and sy2 <= oy2:
-        print("Split high y plane")
-    if sz1 >= oz1 and sz1 <= oz2:
-        print("Split low z plane")
-    if sz2 >= oz1 and sz2 <= oz2:
-        print("Split high z plane")
+    if oy1 <= sy2 < oy2:
+        #print("input y 2", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print("step", step)
+        keep = (o_on, (ox1, sy2+1, oz1), (ox2, oy2, oz2))
+        yield keep
+        oy2 = sy2
+        #print("keep y 2 @", sy2, "=", keep)
+        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print()
 
-    return [overlapped]
+    if oz1 < sz1 <= oz2:
+        #print("input z 1", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print("step", step)
+        keep = (o_on, (ox1, oy1, oz1), (oy1, oy2, sz2-1))
+        yield keep
+        oz1 = sz1
+        #print("keep z 1 @", sz1, "=", keep)
+        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print()
 
+    if oz1 <= sz2 < oz2:
+        #print("input z 2", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print("step", step)
+        keep = (o_on, (ox1, oy1, sz2+1), (ox2, oy2, oz2))
+        oz2 = sz2
+        yield keep
+        #print("keep z 2 @", sz2, "=", keep)
+        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
+        #print()
+
+def count_on(reactor):
+    total = 0
+    for turn_on, (x1,y1,z1), (x2,y2,z2) in reactor:
+        if turn_on:
+            subtotal = ((x2-x1+1) *(y2-y1+1) * (z2-z1+1))
+            print("Sum up", ((x1,y1,z1), (x2,y2,z2)), "=", subtotal)
+            total+= subtotal
+    return total
 
 steps = load_reboot_steps()
 reactor = set()
 reactor = boot_up(reactor, steps)
+print(count_on(reactor))
+#print("Must be 0:", count_on(reactor) - 2758514936282235)
+
