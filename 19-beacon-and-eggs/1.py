@@ -1,5 +1,6 @@
 #!/bin/env python3
 
+import re
 from sys import argv, exit
 from operator import sub
 from itertools import combinations, product
@@ -15,12 +16,13 @@ def load_scanners():
     with open(argv[1], "r") as f:
         for line in f:
             if "scanner" in line:
-                scanner = Scanner()
+                groups = re.match("-+\s+(scanner \d+)\s+-+", line)
+                scanner = Scanner(groups[1])
                 scanners.append(scanner)
             elif "," in line:
                 pos = tuple(map(int, line.strip().split(",")))
                 beacon = Beacon(pos)
-                scanner.append(beacon)
+                scanner.add_beacon(beacon)
     for scanner in scanners:
         scanner.create_fingerprints()
     return scanners
@@ -49,41 +51,86 @@ class Beacon:
         x2, y2, z2 = other.pos
         return (x - x2, y - y2, z - z2)
 
+    def __eq__(self, other):
+        """Returns True when this Beacon has the same coordinates as the other Beacon."""
+        return self.pos == other.pos
+
     def transform(self, transform_func):
         """Transform the coordinates for the Beacon using the provided
         transformation function."""
         self.pos = transform_func(self.pos) 
         self.fingerprint = None
 
-class Scanner(list):
+class Scanner:
     """Implements a list of Beacons."""
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
+        self.beacons = []
         self.fingerprints = None
+        self.matched_up_with = set()
+        self.transformations = make_transformations()
+       
+    def add_beacon(self, beacon):
+        self.beacons.append(beacon)
+
+    def __str__(self):
+        return f"<{self.name}>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __and__(self, other):
+        """Returns the Beacons that also exist in the other Scanner."""
+        return [b1 for b1 in self.beacons for b2 in other.beacons if b1 == b2]
 
     def create_fingerprints(self):
         """Creates fingerprints for all contained Beacons."""
-        for beacon in self:
+        for beacon in self.beacons:
             beacon.set_fingerprint(self.create_beacon_fingerprint(beacon))
-        self.fingerprints = set(beacon.fingerprint for beacon in self)
+        self.fingerprints = set(beacon.fingerprint for beacon in self.beacons)
 
     def create_beacon_fingerprint(self, beacon):
         """Creates a fingerprint for a single contained Beacon."""
-        distances = sorted((dist(beacon.pos, b2.pos), b2) for b2 in self)[1:]
+        distances = sorted((dist(beacon.pos, b2.pos), b2) for b2 in self.beacons)[1:]
         closest_delta = beacon - distances[0][1]
         fingerprint = closest_delta
         return fingerprint
 
     def beacons_for_fingerprint(self, fingerprint):
         """Yields the Beacons for this Scanner, matching the given fingerprint."""
-        return (beacon for beacon in self if beacon.fingerprint == fingerprint)
+        return (beacon for beacon in self.beacons if beacon.fingerprint == fingerprint)
 
     def transform(self, transform_func):
         """Transform the coordinates for all Beacons contained by this Scanner,
         using the provided transformation function."""
-        for beacon in self:
+        for beacon in self.beacons:
             beacon.transform(transform_func)
         self.create_fingerprints()
+
+    def match_up_with(self, other):
+        """Returns True when the Beacons from this Scanner match up with the
+        Beacons from the other Scanner. Also keeps track of the two Scanners
+        matching.
+        Scanners match up if they have at least 12 matching Beacons in the
+        same coordinate reference system."""
+        if matched_up := len(self & other) >= 12:
+            self.matched_up_with.add(other)
+            other.matched_up_with.add(self)
+        return matched_up
+
+    def is_matched_up_with(self, other):
+        return self in other.matched_up_with
+
+    def has_match(self):
+        return bool(self.matched_up_with)
+
+    def can_reorientate(self):
+        return self.transformations and not self.matched_up_with
+
+    def reorientate(self):
+        reorientate, self.transformations = self.transformations[0], self.transformations[1:]
+        self.transform(reorientate)
 
 
 def make_transformations():
@@ -130,14 +177,30 @@ def get_pairing_candidates(scanners):
     def overlapping_fingerprints(a, b):
         return (a.fingerprints & b.fingerprints, a, b)
 
-    def nr_of_overlaps(x):
+    def enough_overlaps(x):
         overlap, a, b = x
-        return len(overlap)
+        print("overlap",a,b,"=",len(overlap))
+        return len(overlap) >= 12
 
-    overlaps = (overlapping_fingerprints(a, b) for a, b in combinations(scanners, 2))
-    big_overlaps = filter(lambda x: nr_of_overlaps(x) >= 12, overlaps)
-    candidates = sorted(big_overlaps, key=nr_of_overlaps, reverse=True)
+    def only_new_matches(x):
+        _, a, b = x
+        return not a.is_matched_up_with(b)
+
+    def only_append_to_already_matched(x):
+        _, a, b = x
+        return (
+            all(not s.has_match() for s in scanners) or
+            a.has_match() or b.has_match()
+        )
+
+    candidates = (overlapping_fingerprints(a, b) for a, b in combinations(scanners, 2))
+    candidates = filter(enough_overlaps, candidates)
+    candidates = filter(only_new_matches, candidates)
+    candidates = filter(only_append_to_already_matched, candidates)
     return candidates
+
+def unmatched_scanners(scanners):
+    return [s for s in scanners if not s.matched_up_with]
 
 def guess_shift_for_matching_two_scanners(overlap, a, b):
     dX, dY, dZ = Counter(),Counter(),Counter() 
@@ -146,41 +209,37 @@ def guess_shift_for_matching_two_scanners(overlap, a, b):
             for b2 in b.beacons_for_fingerprint(fingerprint):
                 xa,ya,za = b1.pos
                 xb,yb,zb = b2.pos
-                dX.update([xb-xa])
-                dY.update([yb-ya])
-                dZ.update([zb-za])
+                dX.update([xa-xb])
+                dY.update([ya-yb])
+                dZ.update([za-zb])
     tX = dX.most_common()[0][0]
     tY = dY.most_common()[0][0]
     tZ = dZ.most_common()[0][0]
     return lambda pos: (pos[0]+tX, pos[1]+tY, pos[2]+tZ)
 
+def pair(scanners):
+    # Check for possible matches in current orientation.
+    for overlap, a, b in get_pairing_candidates(scanners):
+        print("Check",a,b)
+        shift_it = guess_shift_for_matching_two_scanners(overlap, a, b)
+        b.transform(shift_it)
+        if (a.match_up_with(b)):
+            print("Paired",a,"to",b)
+            return pair(scanners)
+    # No matches found. If transformations are still available, try those.
+    for scanner in unmatched_scanners(scanners):
+        if scanner.can_reorientate():
+            print("Reorientate",scanner)
+            scanner.reorientate()
+            return pair(scanners)
+    return False
+
 
 scanners = load_scanners()
-candidates = get_pairing_candidates(scanners)
+pair(scanners)
+print("--restart--")
+for s in scanners: s.transformations = make_transformations()
+pair(scanners)
+print("Unmatched:", unmatched_scanners(scanners))
 
-for overlap, a, b in candidates:
-    shift_it = guess_shift_for_matching_two_scanners(overlap, a, b)
-    b.transform(shift_it)
 
-
-
-# print(scanners)
-# fixed = scanners.pop()
-# transformations = make_transformations()
-
-# fingerprints = list(map(fingerprint, scanners))
-# for mod in apply_transformations(scanners[0], transformations):
-#    scanners[0] = mod
-#    fingerprints[0] = fingerprint(mod)
-#    for i, j in combinations(range(len(scanners)), 2):
-#        overlap = fingerprints[i].intersection(fingerprints[j])
-#        if len(overlap) >= 12:
-#            print(i, j, "overlap", len(overlap))
-#
-
-# stitched = scanners.pop()
-# print(stitched)
-# beacons = scanners[0]
-# for beacons in scanners:
-#    for rotated in apply_transformations(beacons, transformations):
-#        print(rotated[0])
