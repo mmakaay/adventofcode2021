@@ -1,0 +1,75 @@
+
+  Start:       Move cost:
+               A=1
+  ...........  B=10
+    A C C D    C=100
+    B D A B    D=1000
+
+                   A can move left and right, since
+   ...........     Both directions allow A to go to
+     A C C D       the end position when B is gone.
+     B D A B       
+
+An amphipod can move once out of a room and once back into
+a room. There are 8 amphipods. That means that worst case, 
+16 moves are required to move all amphipods to their
+respective rooms.
+
+The maximum number of options for movement are possible at
+at the start of the game
+
+The possible moves are:
+
+   AA.A.A.A.AA    Possible options for A 
+     * C C D       
+     B D A B       
+                   
+   CC.C.C.C.CC    Possible options for C 1
+     A * C D     
+     B D A B       
+
+   CC.C.C.C.CC    Possible options for C 2
+     A C * D     
+     B D A B       
+                   
+   DD.D.D.D.DD    Possible options for D
+     A C C *     
+     B D A B       
+
+If we'd be able to do this many moves (28) on every turn, then
+solving this recursively would be madness with 28**16 moves over
+all steps. Lucky, there are rules that quicly limit the number
+of options after the first move. For example, if we started with:
+
+   .....A.....   
+     . C C D     
+     B D A B    
+
+then the options for moves on the second turn would be:
+
+   BB.B.A.....  (where one B will block A from returing
+     . C C D     to its room, so that's a dead route)
+     * D A B
+
+   .....A.C.CC   
+     . . * D     
+     B D A B    
+
+   .....A.D.DD   
+     . C C *     
+     B D A B    
+
+In total, there are now 9 options. This makes things less worse
+for doing recursion. 
+
+The illegal move for B from above might be a good one to detect early,
+to stop recursion on that route.
+
+Another thing that limits the recursion is having a score to work
+against. When a score has been settled, any recursion route that exceeds
+the score can be stopped immediately.
+
+All in all, it feels like a recursive solution might work here. A depth
+first route would allow for finding a score to work against early on.
+
+Yeah, let's go for this.
