@@ -1,7 +1,6 @@
 #!/bin/env python3
 
 from sys import argv, exit
-from collections import defaultdict
 import re
 
 
@@ -17,33 +16,23 @@ def load_reboot_steps():
         for line in f:
             if m := syntax.match(line):
                 turn_on = m[1] == "on"
-                x1 = min(int(m[2]), int(m[3]))
-                y1 = min(int(m[4]), int(m[5]))
-                z1 = min(int(m[6]), int(m[7]))
-                x2 = max(int(m[2]), int(m[3]))
-                y2 = max(int(m[4]), int(m[5]))
-                z2 = max(int(m[6]), int(m[7]))
-                step = (turn_on, (x1, y1, z1), (x2, y2, z2))
+                corner1 = (int(m[2]), int(m[4]), int(m[6]))
+                corner2 = (int(m[3]), int(m[5]), int(m[7]))
+                step = (turn_on, corner1, corner2)
                 steps.append(step)
-            else:
-                print("Syntax error in: ", line)
     return steps
 
 
-def boot_up(reactor, steps):
-    while steps:
-        steps, reactor = execute_next_step(steps, reactor)
-    return reactor
-
-
-def execute_next_step(steps, reactor):
-    step, steps = steps[0], steps[1:]
-    overlaps = find_overlaps(reactor, step)
-    if overlaps:
+def boot_up_reactor(steps, reactor=set()):
+    if steps:
+        step, remaining_steps = steps[0], steps[1:]
+        overlaps = find_overlaps(reactor, step)
         reactor = handle_overlaps(reactor, step, overlaps)
-    turn_on, _, _ = step
-    reactor.add(step)
-    return steps, reactor
+        if is_turn_on_step(step):
+            reactor.add(step)
+        return boot_up_reactor(remaining_steps, reactor)
+    else:
+        return reactor
 
 
 def find_overlaps(reactor, step):
@@ -71,77 +60,41 @@ def handle_overlaps(reactor, step, overlaps):
 def split_overlapped(overlapped, step):
     o_on, (ox1, oy1, oz1), (ox2, oy2, oz2) = overlapped
     s_on, (sx1, sy1, sz1), (sx2, sy2, sz2) = step
-    #print("Process overlapped ",overlapped)
     if ox1 < sx1 <= ox2:
-        #print("input x 1", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print("step", step)
-        keep = (o_on, (ox1, oy1, oz1), (sx1-1, oy2, oz2))
+        yield (o_on, (ox1, oy1, oz1), (sx1 - 1, oy2, oz2))
         ox1 = sx1
-        yield keep
-        #print("keep x 1 @", sx1, "=", keep)
-        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print()
-    if ox1 <= sx2 < ox2:
-        #print("input x 2", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print("step", step)
-        keep = (o_on, (sx2+1, oy1, oz1), (ox2, oy2, oz2))
-        ox2 = sx2
-        yield keep
-        #print("keep x 2 @", sx2, "=", keep)
-        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print()
     if oy1 < sy1 <= oy2:
-        #print("input y 1", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print("step", step)
-        keep = (o_on, (ox1, oy1, oz1), (ox2, sy1-1, oz2))
-        yield keep
+        yield (o_on, (ox1, oy1, oz1), (ox2, sy1 - 1, oz2))
         oy1 = sy1
-        #print("keep y 1 @", sy1, "=", keep)
-        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print()
-
-    if oy1 <= sy2 < oy2:
-        #print("input y 2", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print("step", step)
-        keep = (o_on, (ox1, sy2+1, oz1), (ox2, oy2, oz2))
-        yield keep
-        oy2 = sy2
-        #print("keep y 2 @", sy2, "=", keep)
-        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print()
-
     if oz1 < sz1 <= oz2:
-        #print("input z 1", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print("step", step)
-        keep = (o_on, (ox1, oy1, oz1), (oy1, oy2, sz2-1))
-        yield keep
+        yield (o_on, (ox1, oy1, oz1), (ox2, oy2, sz1 - 1))
         oz1 = sz1
-        #print("keep z 1 @", sz1, "=", keep)
-        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print()
-
+    if ox1 <= sx2 < ox2:
+        yield (o_on, (sx2 + 1, oy1, oz1), (ox2, oy2, oz2))
+        ox2 = sx2
+    if oy1 <= sy2 < oy2:
+        yield (o_on, (ox1, sy2 + 1, oz1), (ox2, oy2, oz2))
+        oy2 = sy2
     if oz1 <= sz2 < oz2:
-        #print("input z 2", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print("step", step)
-        keep = (o_on, (ox1, oy1, sz2+1), (ox2, oy2, oz2))
+        yield (o_on, (ox1, oy1, sz2 + 1), (ox2, oy2, oz2))
         oz2 = sz2
-        yield keep
-        #print("keep z 2 @", sz2, "=", keep)
-        #print("remaining", ((ox1, oy1, oz1), (ox2, oy2, oz2)))
-        #print()
 
-def count_on(reactor):
-    total = 0
-    for turn_on, (x1,y1,z1), (x2,y2,z2) in reactor:
-        if turn_on:
-            subtotal = ((x2-x1+1) *(y2-y1+1) * (z2-z1+1))
-            print("Sum up", ((x1,y1,z1), (x2,y2,z2)), "=", subtotal)
-            total+= subtotal
-    return total
+
+def is_turn_on_step(step):
+    turn_on, _, _ = step
+    return turn_on
+
+
+def count_lit_cubes(reactor):
+    def number_of_cubes_in(block):
+        _, (x1, y1, z1), (x2, y2, z2) = block
+        return (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
+
+    return sum(map(number_of_cubes_in, reactor))
+
 
 steps = load_reboot_steps()
-reactor = set()
-reactor = boot_up(reactor, steps)
-print(count_on(reactor))
-#print("Must be 0:", count_on(reactor) - 2758514936282235)
+reactor = boot_up_reactor(steps)
+lit_cubes = count_lit_cubes(reactor)
 
+print(lit_cubes)

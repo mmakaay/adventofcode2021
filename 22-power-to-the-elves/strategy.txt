@@ -9,25 +9,29 @@ Part 2
 
 Ouch... brute force will never work, so a better algorithm is required.
 
-What might work is treating the steps as adding actual shapes to the grid.
+What might work is treating the steps as adding block shapes to the grid.
 When there's an overlap with an existing shape, then I could split the overlapped
 shape into multiple shapes, dropping the part that is overlapped.
 After splitting, an off state shape can be dropped, since it's the default state.
-In the end, the size of the on shapes can be summed up to find the answer. 
+In the end, the size of the on shapes can be summed up to find the answer.
+
+For example, when adding the dotted block, I can use its left, back and top
+planes to cut the existing block into pieces:
 
 
-                        ---------------
-                       /             /|
-                      /             / |
-                     /             /  |
-                    /             /  .........
-                   ---------------    |    . .
-                   |             |    /   .  .
-                   |     .       |   /   .   .
-                   |    .................    .
-                   |    .        | /    .    .
-                   |    .        |/     .   .
-                   -----.---------      .  .
-                        .               . .
-                        .               ..
-                        .................
+      .-------------.                         .------.       .-----.
+     /          B  /|                        /      /|      /  B  /|
+    /             / |                       /      / |     /     / |
+   /             /  |                      /      /  |    -------  |
+  /          C  /  .........              /      /   |    |     |  |
+ .-------------. .  |    . .             .------.    |  ------- |  |
+ |             |.   /   .  .       \     |      |    . /     /| |  .
+ |      .......|   /   .   .    ----\    |      |   / /  C  / | | /
+ |  A  .       |  /   .    .    ----/    |  A   |  / -------  . |/
+ |    .........../.....    .       /     |      | /  |     | /--'
+ |    .        |/     .   .              |      |/   |     |/
+ '----.--------'      .  .               '------'    '-----'
+      .               . .
+      .               ..
+      .................
+
