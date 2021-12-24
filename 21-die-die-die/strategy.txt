@@ -16,7 +16,7 @@ This should be enough to do some brute forcing on the game.
 Using the dirac die
 ===================
 
-After the first three throws, we have the following universes:
+The first three throws, yield the following universes:
 
                                    o
               1                    2                    3  
@@ -39,14 +39,129 @@ counts. So looking at the duplicates, the distribution after one turn is:
     3 x 8
     1 x 9
 
-So instead of 27 universes to traverse, we can traverse "only" 7 and use the
-above distribution counts as multipliers in the process.
+So instead of 27 universes to traverse, "only" 7 are traversed.
+The above distribution counts as multipliers in the process.
 
-Given the minimum score of 3 for a round and the winning score of 21, we know
-that a game can have at most 2*7 turns. When we wouldn't cut down on the fan
-out per turn, we'd have 27**(2*7) = 109418989131512359209 final universes to
-consider (kaboom!) With the 7 condensed universes, it's cut down to
-7**(2*7) = 678223072849 (still kaboom!)
+Given the minimum score of 1 for a round (since scores range from 1 to 10)
+and the winning score of 21, we know that a game can have at most 20+21=41
+turns, containing 123 throws.
 
-So conclusion is that brute forcing using these condensed outcomes isn't feasible.
+Note: this is a very rough statement. Because the scoring is a modulo 10
+and the max throw total for a turn is 9, it is impossible to get 1 point
+on every turn.
+
+When no cut down is done on the fan out per turn, the max number of
+universes is:
+
+  3**123 = 10633823966279326983230456482242756608
+
+Using the 7 condensed universes, it's cut down to:
+
+  7**41 = 44567640326363195900190045974568007 (still kaboom!)
+
+So conclusion is that brute forcing using these condensed outcomes isn't
+feasible.  I expected as much, but seeing the numbers makes it really
+convincing ;-)
+
+
+So how to handle this?
+----------------------
+
+Great question! I think that the distribution of throw totals that I already
+derived above is useful. Also the modulo 10 scoring mechanism is
+interesting, and the fact that there are only two possible outcomes for a
+game, and the limit of 21 turns max might prove to be limiting factors on
+the processing.
+
+Thinking about it, what ought to be the case here (simply based on the number
+of universes that we'll end up with, compared with the number of unique states
+that a game can be in) is that we'll see the same game state pop up over and
+over again. That might open up the road for some memoization to limit the
+computational effort.
+
+So instead of doing a complete tree walk to play out each game, it might be
+possible to flatten things down a lot more than I tried above with only
+using the throw distribution options.
+
+Dynamic programming could be a good approach too. It's a bit like
+assignments about "in how many ways can I combine coins to get a total
+sum of ??? euro". This assignment is about "in how many ways can the game
+be won by the two players?"
+
+To work with memoization / dynamic programming, the factors that make
+up a unique game state must be defined. For each of those states, the
+question to answer is "how many ways are there to win this game and who
+wins?"
+
+The simplest state to resolve is "when player X has already won". So when
+using memoization, it makes sense to start from winning states and work
+backward to the initial board state.
+
+
+Game state factors
+------------------
+
+Given a finished game, the following factors define the game state:
+
+- The winner: player 1 or player 2
+
+- The end position for the winning player
+  Range: 1 - 10
+
+- The end position for the losing player
+  Range: 1 - 10
+
+- The total score for the winning player
+  The minimum is when the player was at 20 and then got 1 point: 21
+  The maximum is when the player was at 20 and then got 10 points: 30
+  Range: 21 - 30
+
+- The total score for the losing player
+  Range: 3 - 20
+
+- The number of turns for the winner until the game was won
+  The loser will always have one turn less than the winner
+  Range: 3 - 10
+
+
+Note: for the last two factors, the script min_max_analysis.py was written
+to work out the scenarios.
+
+Note: All end states are independent from the game input (the starting
+positions of the players). So in the code, the starting positions won't be
+part of the end position generation code.
+
+Using combinations of these factors, all possible end game states can be
+constructed. From these states, the games can be played in reverse to find
+the number of routes back to the starting point. The starting point being
+defined by the factors:
+
+- The starting score of the players 
+  Static value: 0
+
+- The starting position of the players 
+  Range: 1 - 10
+
+These factors will be used to check if the starting point of the game has
+been reached, while playing it in reverse.
+
+The earlier derived distribution of possible steps per turn can be used in
+this process. These were the options:
+
+ nr of routes | steps in turn
+ -------------+--------------
+       1      |      3
+       3      |      4
+       6      |      5
+       7      |      6
+       6      |      7
+       3      |      8
+       1      |      9
+
+So when moving backward in the game, we can for example start with a given
+end position of 7 for the winner. Then we know that there are 6 games in
+which the winning player was on position (7 - 5) = 2 in the turn before
+the winning step.
+
+I think I got enough information now. Time to get coding!
 
