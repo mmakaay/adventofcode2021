@@ -168,71 +168,71 @@ def find_scanner_shift(overlap, a, b):
 
 
 def align(scanners):
-    """Pair up the provided list of Scanners. This will transform the coordinates
+    """Align the provided list of Scanners. This will transform the coordinates
     of the Scanners and their Beacons in such way, that the Beacons that are seen
     by two or more Scanners end up at the same coordinates."""
-    pairs = make_pairing_candidates(scanners)
-    start = pick_start_scanner(pairs)
+    possible_alignments = make_alignment_candidates(scanners)
+    start = pick_start_scanner(possible_alignments)
     unaligned = set(scanners) ^ {start}
-    unaligned = alignment_step(pairs, unaligned)
+    unaligned = alignment_step(possible_alignments, unaligned)
 
     if unaligned:
-        print("pairing failed, unaligned scanner(s)")
+        print("Alignment failed for scanner(s):")
         print("> " + "\n> ".join(map(str, unaligned)))
         exit(1)
 
 
-def make_pairing_candidates(scanners):
-    """Returns sets of Scanners, ordered by the likeliness that they can be
-    matched up with each other. The is determined by checking how many fingerprint
-    matches can be found between the two related sets of Beacons."""
+def make_alignment_candidates(scanners):
+    """Returns pairs of Scanners, ordered by the likeliness that they can be
+    aligned with each other. The is determined by checking how many fingerprint
+    overlaps can be found between the two related sets of Beacons."""
 
     def matching_fingerprints(pair):
         a, b = pair
         return (a.fingerprints & b.fingerprints, a, b)
 
-    def by_number_of_matches(pair):
+    def by_number_of_overlaps(pair):
         matching, a, b = pair
         return len(matching)
 
     combis = combinations(scanners, 2)
     pairs = map(matching_fingerprints, combis)
-    pairs = sorted(pairs, key=by_number_of_matches, reverse=True)
+    pairs = sorted(pairs, key=by_number_of_overlaps, reverse=True)
     return pairs
 
 
-def pick_start_scanner(pairs):
+def pick_start_scanner(possible_alignments):
     """Pick the Scanner that looks like it might have the most neighbours as the
-    starting point for pairing. Being the starting point means that the coordinate
+    starting point for alignment. Being the starting point means that the coordinate
     system for start Beacon will be fixated, serving as the reference coordinate
     system that all other Sensors must be aligned to."""
     connections = Counter()
-    for matching, a, b in pairs:
-        l = len(matching)
+    for overlap, a, b in possible_alignments:
+        l = len(overlap)
         connections.update({a: l, b: l})
     start, _ = connections.most_common()[0]
     return start
 
 
-def alignment_step(pairs, unaligned):
+def alignment_step(possible_alignments, unaligned):
     """Find the next Sensor that can be aligned with an already aligned Sensor."""
-    for overlap, a, b in prepare_pairs(pairs, unaligned):
+    for overlap, a, b in prepare_pairs(possible_alignments, unaligned):
         for reorient_scanner in get_reorientation_transformations():
             a.reset()
             a.transform(reorient_scanner)
             if shift_scanner := find_scanner_shift(overlap, a, b):
                 a.transform(shift_scanner)
                 unaligned.remove(a)
-                return alignment_step(pairs, unaligned)
+                return alignment_step(possible_alignments, unaligned)
     return unaligned
 
 
-def prepare_pairs(pairs, unaligned):
-    """Filter and order the pairs in such way that pairing of two scanners will
+def prepare_pairs(possible_alignments, unaligned):
+    """Filter and order the pairs in such way that aligning two scanners will
     only be done from an unaligned to an already aligned one. If both scanners
-    are already aligned, or both are unaligned, then no pairing will be
+    are already aligned, or both are unaligned, then no alignment will be
     performed with them (yet)."""
-    for overlap, a, b in pairs:
+    for overlap, a, b in possible_alignments:
         if a in unaligned and b not in unaligned:
             yield overlap, a, b
         elif b in unaligned and a not in unaligned:
