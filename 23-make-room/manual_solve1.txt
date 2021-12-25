@@ -1,0 +1,44 @@
+I think I can solve this manually too...
+Let's see:
+
+ ........... 
+   A C C D   
+   B D A B 
+
+ .........D.  2000
+   A C C .   
+   B D A B 
+
+ A........D.  2003
+   . C C .   
+   B D A B 
+
+ AA.......D.  2510
+   . C . .   
+   B D C B 
+
+ AA.......D.  2910
+   . . C .   
+   B D C B 
+
+ AA.B.....D.  2980
+   . . C .   
+   B D C . 
+
+ AA.B.....D.  10980
+   . . C .   
+   B . C D 
+
+ AA.B.......  12980
+   . . C D   
+   B . C D 
+
+ A..........  13063
+   . B C D   
+   A B C D 
+
+ ...........  13066
+   A B C D   
+   A B C D 
+
+Aaaaand it's correct, yay :-)

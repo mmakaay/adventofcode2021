@@ -59,11 +59,13 @@ def possible_moves(burrow):
 def possible_moves_from_room_to_hallway(burrow):
     hallway, rooms = burrow 
     for room_nr, room in enumerate(rooms):
-        pos, amphipod = movable_amphipod_from_room(room, room_nr)
+        if move_pos := movable_amphipod_from_room(room, room_nr):
+            print(room_nr, room, move_pos)
+            yield (), burrow
         
        
 def movable_amphipod_from_room(room, room_nr):
-    occupation_level = occupation_level(room)
+    occupation_level = room_occupation_level(room)
 
     # Not occupied? Then we can't do anything.
     if occupation_level == 0:
@@ -71,7 +73,10 @@ def movable_amphipod_from_room(room, room_nr):
 
     if occupation_level == 1:
         # When the single amphipod belongs in this room, it won't budge.
-        if room[BOTTOM] == 
+        if room[BOTTOM] == room_nr:
+            return
+        else:
+            return BOTTOM
 
     if occupation_level == 2:
         # Are both positions in the room already taken by the amphipods
@@ -79,18 +84,14 @@ def movable_amphipod_from_room(room, room_nr):
         if room[TOP] == room_nr and room[BOTTOM] == room_nr:
             return
 
-        # In case both position in the room are occupied:
         # When the top amphipod is in the wrong room, then it must be moved.
         # Also, when the bottom amphipod is in the wrong room, then the top
-        # one must be moved to free the bottom one.
-
-        if room[BOTTOM] != room_nr:
-
-        # When the top ampphipod is
-        if room[1] != room_nr:
+        # one must be moved to free the bottom one. So conclusion is:
+        # the top amphipod must move.
+        return TOP
 
 
-def occupation_level(room):
+def room_occupation_level(room):
     return sum(pos is not None for pos in room)
    
 
@@ -101,16 +102,18 @@ def all_are_home(burrow):
 
 def dump(burrow):
     hallway, rooms = burrow
+    def render(x):
+        return " " if x is None else str(x)
     flipped = list(zip(*rooms))
     print(".-----------.")
-    print("|" + "".join(hallway) + "|")
-    print("'-." + "|".join(flipped[0]) + ".-'")
-    print("  |" + "|".join(flipped[1]) + "|  ")
-    print("  `-------'")
+    print("|" + "".join(map(render, hallway)) + "|")
+    print("'-." + "|".join(map(render, flipped[0])) + ".-'")
+    print("  |" + "|".join(map(render, flipped[1])) + "|  ")
+    print("  `-+-+-+-'")
 
 
 burrow = load_burrow()
+dump(burrow)
 least_energy = find_solution_with_least_energy(burrow)
 
-dump(burrow)
 print(least_energy)

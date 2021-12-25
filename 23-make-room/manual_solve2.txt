@@ -1,0 +1,168 @@
+ ...........
+   A C C D     0
+   D C B A
+   D B A C
+   B D A B
+
+ A..........
+   . C C D     3
+   D C B A
+   D B A C
+   B D A B
+
+ .........C.
+   A C . D     400
+   D C B A
+   D B A C
+   B D A B
+
+ .......B.C.
+   A C . D     430
+   D C . A
+   D B A C
+   B D A B
+
+ A......B.C.
+   A C . D     439
+   D C . A
+   D B . C
+   B D A B
+
+ AA.....B.C.   448
+   A C . D
+   D C . A
+   D B . C
+   B D . B
+
+ AA.....B.C.   1148
+   A . . D
+   D C . A
+   D B . C
+   B D C B
+
+ AA.....B.C.   1848
+   A . . D
+   D . . A
+   D B C C
+   B D C B
+
+ AA...B.B.C.   1888
+   A . . D
+   D . . A
+   D . C C
+   B D C B
+
+ AA.D.B.B.C.   6888
+   A . . D
+   D . . A
+   D . C C
+   B . C B
+
+ AA.D...B.C.   6938
+   A . . D
+   D . . A
+   D . C C
+   B B C B
+
+ AA.D.....C.   6998
+   A . . D
+   D . . A
+   D B C C
+   B B C B
+
+ AA.D.......   7498
+   A . . D
+   D . C A
+   D B C C
+   B B C B
+
+ AA.D.D.....  11498
+   A . . .
+   D . C A
+   D B C C
+   B B C B
+
+ AA.D.D....A  11502
+   A . . .
+   D . C .
+   D B C C
+   B B C B
+
+ AA.D.D....A  12102
+   A . C .
+   D . C .
+   D B C .
+   B B C B
+
+ AA.D.D...BA  12152
+   A . C .
+   D . C .
+   D B C .
+   B B C .
+
+ AA.D.....BA  19152
+   A . C .
+   D . C .
+   D B C .
+   B B C D
+
+ AA.......BA  27152
+   A . C .
+   D . C .
+   D B C D
+   B B C D
+
+ AA........A  27222
+   A . C .
+   D B C .
+   D B C D
+   B B C D
+
+ AA.......AA  27230
+   . . C .
+   D B C .
+   D B C D
+   B B C D
+
+ AA.......AA  37230
+   . . C .
+   . B C D
+   D B C D
+   B B C D
+
+ AA.......AA  47230
+   . . C D
+   . B C D
+   . B C D
+   B B C D
+
+ AA.......AA  47300
+   . B C D
+   . B C D
+   . B C D
+   . B C D
+
+ A........AA  47305
+   . B C D
+   . B C D
+   . B C D
+   A B C D
+
+ .........AA  47310
+   . B C D
+   . B C D
+   A B C D
+   A B C D
+
+ ..........A  47319
+   . B C D
+   A B C D
+   A B C D
+   A B C D
+
+ ...........  47328
+   A B C D
+   A B C D
+   A B C D
+   A B C D
+
