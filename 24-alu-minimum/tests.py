@@ -1,4 +1,6 @@
 #!/bin/env python3
+#
+# This script contains unit tests for the alu module.
 
 import unittest
 from alu import *

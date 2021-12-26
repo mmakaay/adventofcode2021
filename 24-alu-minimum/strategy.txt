@@ -1,0 +1,440 @@
+Step 1: write an ALU emulator
+=============================
+
+I started by writing the ALU emulator and code compiler. Using this
+compiler I managed to write the serial_checker.py script, that checks
+if a provided serial number is valid or not.
+
+Step 2: try a brute force
+=========================
+
+Brute forcing valid serial numbers using the compiled input wasn't really
+feasible, since there are 99,999,999,999,999 possible serial numbers.
+This idea was therefore quickly dropped.
+
+Step 3: try a smarter brute force
+=================================
+
+As an alternative, I tried a backtracking method. Inspecting the source
+code of the input, it was clear that the code processes one digit of the
+serial number at a time, using the z register to accumulate a checksum
+for the whole serial number.
+
+I wrote some code that split up the source code into 14 parts. Then I
+tried to find possible serial number digits, starting from 14 back to 1,
+using a recursive algorithm.
+
+For the very first step, this worked. However, while traversing the tree
+too many unknowns were introduced to make this work. I bascially would
+become yet another heavy brute force solution.
+
+Step 4: interpet the code to understand what it does
+====================================================
+
+Because brute forcing didn't lead to results, I took the code and became an
+ALU emulator myself :) For every single digit processing block, I resolved
+the four registers manually, keeping all inputs as variables.
+
+Some patterns emerged while doing this. A huge amount of code actually
+does nothing, which was a fun discovery. By continuously simplifying code
+where possible, eventually a clean set of rules was found that could be
+used for generating valid serial numbers.
+
+The main idea of reverse engineering the code was to check if I could come
+up with a clean formula for computing the final z register (the checksum)
+based on 14 digits of input. Well, I did get a VERY clean formula in the
+end. The formula was:
+
+  z = 0
+
+While deriving this formula, some rules for relations between the serial
+number digits were extracted. These were:
+
+   $5 =  $4 - 3
+   $8 =  $7 - 2
+   $9 =  $6 - 1
+  $10 =  $3 - 7
+  $12 = $11 - 6
+  $13 =  $2 + 7
+  $14 =  $1 + 8
+
+With these rules, one can even find valid serial numbers manually.
+
+  $14 = $1 + 8     Conclusions:
+                   $1 can only be 1  (since digits are [1..9])
+                   $14 can only be 9
+                   Therefore, every serial number looks like:
+                   1............9
+
+  $13 = $2 + 7     $2 can be 1 or 2, $13 can be 8 or 9
+                   min: 11..........99
+                   max: 12..........89
+
+  $12 = $11 - 6    $11 can be [7..9], $12 can be [1..3]
+                   min: 11........7199
+                   max: 12........9389
+
+  $10 =  $3 - 7    $10 can be 1 or 2, $3 can be 8 or 9
+                   min: 118......27199
+                   max: 129......19389
+
+   $9 =  $6 - 1    $9 can be [1..8], $6 can be [2..9]
+                   min: 118..2..127199
+                   max: 129..9..819389
+
+   $8 =  $7 - 2    $8 can be [1..7], $7 can be [3..9]
+                   min: 118..231127199
+                   max: 129..997819389
+
+   $5 =  $4 - 3    $5 can be [1..6], $4 can be [4..9]
+                   min: 11841231127199
+                   max: 12996997819389
+
+While this already provides the two answers that are required for
+the assignment, I still translated these rules into a serial number
+generator script serial_generator.py. That script generates all valid
+serial numbers.
+
+
+Here are the reverse engineering notes that I took:
+---------------------------------------------------
+
+at start       w, x, y, z = 0, 0, 0, 0
+
+; Digit 1
+inp w    
+mul x 0  
+add x z  
+mod x 26 
+div z 1        
+add x 14       
+eql x w        
+eql x 0        
+mul y 0        
+add y 25       
+mul y x        
+add y 1
+mul z y
+mul y 0
+add y w
+add y 12
+mul y x
+add z y
+        w = $1
+        x = 1   
+        y = $1 + 12
+        z = $1 + 12   (Z1)
+
+; Digit 2
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 15
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 7
+mul y x
+add z y
+        w = $2
+        x = 1
+        y = $2 + 7 
+        z = Z1*26 + $2 + 7  (Z2)
+
+; Digit 3
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 12
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 1
+mul y x
+add z y
+        w = $3
+        x = 1
+        y = $3+1
+        z = Z2*26 + $3 + 1  (Z3)
+
+; Digit 4
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 11
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 2
+mul y x
+add z y
+        w = $4
+        x = 1
+        y = $4 + 2
+        z = Z3*26 + $4 + 2  (Z4)
+
+; Digit 5
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -5
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 4
+mul y x
+add z y
+        w = $5          assume w == x, this gives the rules:
+        x = 0           $5 = $4 - 3
+        y = 0           $4 = $5 + 3 <-- substituted
+        z = Z3
+
+; Digit 6
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 14
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 15
+mul y x
+add z y
+        w = $6 
+        x = 1
+        y = $6 + 15  
+        z = Z3*26 + $6 + 15  (Z6)
+
+; Digit 7
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 15
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 11
+mul y x
+add z y
+        w = $7
+        x = 1
+        y = $7 + 11
+        z = Z6*26 + $7 + 11  (Z7)
+
+; Digit 8
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -13
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 5
+mul y x
+add z y
+        w = $8
+        x = 0           assume w == x, this gives the rules:
+        y = 0           $8 = $7 - 2
+        z = Z6          $7 = $8 + 2 <-- substituted
+
+; Digit 9
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -16
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 3
+mul y x
+add z y
+        w = $9         assume w == x, this gives the rules:
+        x = 0          $9 = $6 - 1
+        y = $9 + 3     $6 = $9 + 1 <-- substituted
+        z = Z3
+
+; Digit 10
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -8
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 9
+mul y x
+add z y
+        w = $10        assume w == x, this gives the rules:
+        x = 0          $10 = $3 - 7
+        y = 1          $3 = $10 + 7 <-- substituted
+        z = Z2
+
+; Digit 11 
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 15
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 2
+mul y x
+add z y
+        w = $11
+        x = 1
+        y = $11 + 2 
+        z = Z2 * 26 + $11 + 2  (Z11)
+
+; Digit 12
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -8
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 3
+mul y x
+add z y
+        w = $12        assume w == x, this gives the rules:
+        x = 0          $12 = $11 - 6
+        y = 0          $11 = $12 + 6 <-- substituted
+        z = Z2
+
+; Digit 13
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x 0
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 3
+mul y x
+add z y
+        w = $13        assume w == x, this gives the rules:
+        x = 0          $13 = $2 + 7
+        y = 0          $2 = $13 - 7 <-- substituted
+        z = Z1
+
+; Digit 14 
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -4
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 11
+mul y x
+add z y
+        w = $14        assume w == x, this gives the rules:
+        x = 0          $14 = $1 + 8
+        y = 0          $1 = $14 - 8 <-- substituted
+        z = 0
+
+

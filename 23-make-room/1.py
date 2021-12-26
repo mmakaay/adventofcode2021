@@ -12,9 +12,8 @@ D = 3
 # Energy use of amphipods.
 ENERGY = { A: 1, B: 10, C: 100, D: 1000 } 
 
-# Positions in a room.
-TOP = 0
-BOTTOM = 1
+# The number of positions in a room
+ROOM_SIZE=4
 
 def load_burrow():
     if len(argv) != 2:

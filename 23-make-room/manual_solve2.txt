@@ -10,13 +10,13 @@
    D B A C
    B D A B
 
- .........C.
+ A........C.
    A C . D     400
    D C B A
    D B A C
    B D A B
 
- .......B.C.
+ A......B.C.
    A C . D     430
    D C . A
    D B A C

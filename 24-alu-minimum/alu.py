@@ -12,6 +12,19 @@ class ALURuntimError(Exception):
 class ALUEmulator:
     def __init__(self):
         self._vars = [0, 0, 0, 0]
+        self.debug = False
+
+    def set_debug(self, on_off):
+        self.debug = on_off
+
+    def exec(self, src_line, func, *args):
+        if (self.debug):
+            a = self.vars
+            func(*args)
+            b = self.vars
+            print(f"DEBUG: {src_line:10s} {a} -> {b}")
+        else:
+            func(*args)
 
     @property
     def vars(self):
@@ -81,7 +94,8 @@ class ALUCompiler:
         """Compiles lines of source code into an ALU program."""
         program = ALUProgram()
         for line in src:
-            line = line.strip()
+            src_line = line.strip()
+            line = src_line
             if ";" in line:
                 line = line[:line.index(";")]
             parts = line.lower().split()
@@ -90,29 +104,32 @@ class ALUCompiler:
 
             instruction = None
             cmd = parts.pop(0)
-            if cmd == "inp":
+            if cmd == "dbg":
+                on_off = bool(parts.pop())
+                instruction = self.make_dbg_instruction(src_line, on_off)
+            elif cmd == "inp":
                 var = self.get_var(line, parts)
-                instruction = self.make_inp_instruction(var)
+                instruction = self.make_inp_instruction(src_line, var)
             elif cmd == "add":
                 arg1 = self.get_var(line, parts)
                 arg2, is_var = self.get_var_or_int(line, parts)
-                instruction = self.make_add_instruction(arg1, arg2, is_var)
+                instruction = self.make_add_instruction(src_line, arg1, arg2, is_var)
             elif cmd == "mul":
                 arg1 = self.get_var(line, parts)
                 arg2, is_var = self.get_var_or_int(line, parts)
-                instruction = self.make_mul_instruction(arg1, arg2, is_var)
+                instruction = self.make_mul_instruction(src_line, arg1, arg2, is_var)
             elif cmd == "div":
                 arg1 = self.get_var(line, parts)
                 arg2, is_var = self.get_var_or_int(line, parts)
-                instruction = self.make_div_instruction(arg1, arg2, is_var)
+                instruction = self.make_div_instruction(src_line, arg1, arg2, is_var)
             elif cmd == "mod":
                 arg1 = self.get_var(line, parts)
                 arg2, is_var = self.get_var_or_int(line, parts)
-                instruction = self.make_mod_instruction(arg1, arg2, is_var)
+                instruction = self.make_mod_instruction(src_line, arg1, arg2, is_var)
             elif cmd == "eql":
                 arg1 = self.get_var(line, parts)
                 arg2, is_var = self.get_var_or_int(line, parts)
-                instruction = self.make_eql_instruction(arg1, arg2, is_var)
+                instruction = self.make_eql_instruction(src_line, arg1, arg2, is_var)
             else:
                 raise ALUSyntaxError("Unknown operation:", line)
             if parts:
@@ -141,39 +158,45 @@ class ALUCompiler:
         if name == "z": return VAR_Z
         raise ALUSyntaxError(f"Unknown variable name '{name}' used: {line}")
 
-    def make_inp_instruction(self, var):
+    def make_dbg_instruction(self, src_line, on_off):
+        def instruction_(alu, args):
+            alu.set_debug(on_off)
+            return args
+        return instruction_
+
+    def make_inp_instruction(self, src_line, var):
         def instruction_(alu, args):
             value, args = args[0], args[1:]
-            alu.inp(var, value)
+            alu.exec(src_line, alu.inp, var, value)
             return args
         return instruction_
 
-    def make_add_instruction(self, arg1, arg2, is_var):
+    def make_add_instruction(self, src_line, arg1, arg2, is_var):
         def instruction_(alu, args):
-            alu.add(arg1, arg2, is_var)
+            alu.exec(src_line, alu.add, arg1, arg2, is_var)
             return args
         return instruction_
 
-    def make_mul_instruction(self, arg1, arg2, is_var):
+    def make_mul_instruction(self, src_line, arg1, arg2, is_var):
         def instruction_(alu, args):
-            alu.mul(arg1, arg2, is_var)
+            alu.exec(src_line, alu.mul, arg1, arg2, is_var)
             return args
         return instruction_
 
-    def make_div_instruction(self, arg1, arg2, is_var):
+    def make_div_instruction(self, src_line, arg1, arg2, is_var):
         def instruction_(alu, args):
-            alu.div(arg1, arg2, is_var)
+            alu.exec(src_line, alu.div, arg1, arg2, is_var)
             return args
         return instruction_
 
-    def make_mod_instruction(self, arg1, arg2, is_var):
+    def make_mod_instruction(self, src_line, arg1, arg2, is_var):
         def instruction_(alu, args):
-            alu.mod(arg1, arg2, is_var)
+            alu.exec(src_line, alu.mod, arg1, arg2, is_var)
             return args
         return instruction_
 
-    def make_eql_instruction(self, arg1, arg2, is_var):
+    def make_eql_instruction(self, src_line, arg1, arg2, is_var):
         def instruction_(alu, args):
-            alu.eql(arg1, arg2, is_var)
+            alu.exec(src_line, alu.eql, arg1, arg2, is_var)
             return args
         return instruction_
